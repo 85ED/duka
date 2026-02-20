@@ -1128,14 +1128,18 @@ a {
 
 /* ===== DESPESAS - KPI E GRÁFICO ===== */
 .expense-top-widgets {
-    display: inline-block;
-    max-width: 720px;
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    width: fit-content;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     margin-bottom: 20px;
 }
 
 .expense-top-widgets .card {
-    display: inline-block;
-    width: auto;
+    background: transparent;
+    box-shadow: none;
+    border: none;
 }
 
 .expense-summary-row {
