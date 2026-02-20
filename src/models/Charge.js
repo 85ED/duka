@@ -209,7 +209,7 @@ class Charge {
             }
         }
 
-        query += ' ORDER BY c.due_date ASC';
+        query += ' ORDER BY c.due_date DESC, c.id DESC';
 
         const [rows] = await db.execute(query, params);
         // Clean up JSON arrays with null values

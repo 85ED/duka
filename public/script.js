@@ -162,7 +162,10 @@ function formatCurrency(value) {
 
 function formatDate(dateString) {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('pt-BR');
+    // Fix timezone issue: parse YYYY-MM-DD as local date
+    const [year, month, day] = dateString.split('T')[0].split('-');
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString('pt-BR');
 }
 
 function openModal(content) {
@@ -1250,6 +1253,11 @@ async function loadCharges() {
         if (charges.length === 0) {
             html += '<p style="text-align: center; color: var(--text-secondary);">Nenhuma cobrança</p>';
         } else {
+            // Wrap table in scrollable container if more than 20 charges
+            const needsScroll = charges.length > 20;
+            if (needsScroll) {
+                html += '<div style="max-height: 600px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px;">';
+            }
             html += `<table class="table">
                 <thead>
                     <tr>
@@ -1340,6 +1348,11 @@ async function loadCharges() {
                 </tr>`;
             });
             html += '</tbody></table>';
+            
+            // Close scroll wrapper if needed
+            if (charges.length > 20) {
+                html += '</div>';
+            }
         }
 
         html += '</div></div>';
@@ -1649,9 +1662,8 @@ async function loadPartners() {
     try {
         const partners = await apiCall('/users/partners');
 
-        let html = '<div class="card"><div class="card-header"><h2>Meus Sócios</h2><small style="color: var(--text-secondary); font-weight: normal;">Se divide as rendas com sócios. Defina o percentual de cada um e o sistema calcula sozinho.</small>';
-        html += '<button class="btn btn-primary btn-small" onclick="showCreatePartnerForm()">+ Novo Sócio</button>';
-        html += '<button class="btn btn-secondary btn-small" onclick="showPartnerShareForm()">+ Divisão</button></div>';
+        let html = '<div class="card"><div class="card-header"><h2>Meus Sócios</h2><small style="color: var(--text-secondary); font-weight: normal;">Selecione usuários existentes e defina sua participação nos lucros. O sistema calcula automaticamente.</small>';
+        html += '<button class="btn btn-primary btn-small" onclick="showPartnerShareForm()">+ Adicionar Sócio</button></div>';
         html += '<div class="card-body">';
 
         if (partners.length === 0) {
@@ -1673,85 +1685,33 @@ async function loadPartners() {
     }
 }
 
-async function showCreatePartnerForm() {
-    const form = `<h2>Criar Novo Sócio</h2>
-        <form id="create-partner-form">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Nome *</label>
-                    <input type="text" id="partner-name" required>
-                </div>
-                <div class="form-group">
-                    <label>E-mail *</label>
-                    <input type="email" id="partner-email" required>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Senha *</label>
-                    <input type="password" id="partner-password" required>
-                </div>
-                <div class="form-group">
-                    <label>Confirmar Senha *</label>
-                    <input type="password" id="partner-password-confirm" required>
-                </div>
-            </div>
-            <div class="form-actions">
-                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Criar Sócio</button>
-            </div>
-        </form>`;
-
-    openModal(form);
-
-    document.getElementById('create-partner-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const pwd1 = document.getElementById('partner-password').value;
-        const pwd2 = document.getElementById('partner-password-confirm').value;
-
-        if (pwd1 !== pwd2) {
-            alert('As senhas não conferem!');
-            return;
-        }
-
-        try {
-            await apiCall('/users/partners', 'POST', {
-                name: document.getElementById('partner-name').value,
-                email: document.getElementById('partner-email').value,
-                password: pwd1
-            });
-            closeModal();
-            loadPartners();
-        } catch (error) {
-            alert('Erro: ' + error.message);
-        }
-    });
-}
-
 async function showPartnerShareForm() {
-    const potentialPartners = await apiCall('/users');
-    const filtered = potentialPartners.filter(u => u.role === 'member' && u.id !== currentUser.id);
+    const allUsers = await apiCall('/users');
+    // Filter out current user only (any other user can become a partner)
+    const availableUsers = allUsers.filter(u => u.id !== currentUser.id);
 
-    let form = `<h2>Registrar Divisão de Lucros</h2>
+    let form = `<h2>Adicionar Sócio e Definir Participação</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 20px;">Selecione um usuário existente e defina sua porcentagem de participação nos lucros.</p>
         <form id="partner-share-form">
             <div class="form-row">
                 <div class="form-group">
-                    <label>Sócio *</label>
+                    <label>Selecionar Usuário *</label>
                     <select id="share-partner-id" required>
-                        <option value="">Selecione...</option>`;
-    filtered.forEach(p => {
-        form += `<option value="${p.id}">${p.name} (${p.email})</option>`;
+                        <option value="">Escolha um usuário...</option>`;
+    availableUsers.forEach(u => {
+        form += `<option value="${u.id}">${u.name} (${u.email}) - ${u.role === 'client_admin' ? 'Admin' : 'Membro'}</option>`;
     });
     form += `</select>
                 </div>
                 <div class="form-group">
-                    <label>Percentual de Lucro (%) *</label>
-                    <input type="number" id="share-percentage" min="0" max="100" step="0.01" required>
+                    <label>Percentual de Participação (%) *</label>
+                    <input type="number" id="share-percentage" min="0" max="100" step="0.01" required placeholder="Ex: 50.00">
+                    <small style="color: var(--text-secondary);">Porcentagem dos lucros que este sócio receberá</small>
                 </div>
             </div>
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Registrar</button>
+                <button type="submit" class="btn btn-primary">Adicionar como Sócio</button>
             </div>
         </form>`;
 
