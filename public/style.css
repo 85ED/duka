@@ -498,45 +498,126 @@ body {
     transition: width 0.3s ease;
 }
 
+
+/* Dashboard KPIs - Grid compacto e responsivo */
 .dashboard-kpis {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    margin-bottom: 24px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        margin-bottom: 24px;
+}
+
+@media (max-width: 1024px) {
+    .dashboard-kpis {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 600px) {
+    .dashboard-kpis {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
 }
 
 .kpi-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
+        display: contents;
 }
 
 .kpi-card {
-    background-color: var(--white);
-    border-radius: 8px;
-    padding: 18px;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border-color);
+        background-color: var(--white);
+        border-radius: 10px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+        min-height: 110px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 16px 18px 14px 18px;
+        gap: 2px;
+        position: relative;
+        transition: box-shadow 0.15s;
+}
+.kpi-card:hover {
+        box-shadow: var(--shadow-lg);
 }
 
+
 .kpi-label {
-    font-size: 12px;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    margin-bottom: 8px;
+        font-size: 11px;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+        font-weight: 600;
+        line-height: 1.1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
 }
 
 .kpi-value {
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--text-primary);
+        font-size: 2.1rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1.05;
+        margin-bottom: 2px;
+        letter-spacing: -0.5px;
 }
 
 .kpi-subtext {
-    margin-top: 6px;
-    font-size: 12px;
-    color: var(--text-secondary);
+        margin-top: 2px;
+        font-size: 11px;
+        color: var(--text-secondary);
+        line-height: 1.1;
+        opacity: 0.85;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+}
+
+/* Nomes extras dentro do KPI viram legenda discreta */
+.kpi-card .kpi-names, .kpi-card .kpi-extra, .kpi-card .kpi-nome, .kpi-card .kpi-nomes-internos {
+        font-size: 10px !important;
+        color: var(--text-secondary) !important;
+        opacity: 0.65 !important;
+        font-weight: 400 !important;
+        margin-top: 2px !important;
+        margin-bottom: 0 !important;
+        line-height: 1.1 !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+}
+
+/* Força altura igual para todos os cards, independente do conteúdo */
+.dashboard-kpis, .kpi-card {
+        align-items: stretch;
+}
+.kpi-card {
+        height: 100%;
+        min-height: 110px;
+        max-height: 120px;
+        box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+    .kpi-card {
+        min-height: 100px;
+        max-height: 110px;
+        padding: 14px 12px 12px 14px;
+    }
+}
+@media (max-width: 600px) {
+    .kpi-card {
+        min-height: 90px;
+        max-height: 100px;
+        padding: 10px 8px 10px 10px;
+    }
+    .kpi-value {
+        font-size: 1.5rem;
+    }
 }
 
 .card-header-flex {
