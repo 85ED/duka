@@ -2035,6 +2035,35 @@ async function loadExpenses() {
             throw new Error('Resposta inválida da API de despesas');
         }
 
+        // Calcular total do mês atual
+        const hoje = new Date();
+        const mesAtual = hoje.getMonth();
+        const anoAtual = hoje.getFullYear();
+        const despesasMes = expenses.filter(e => {
+            const d = new Date(e.expense_date);
+            return d.getMonth() === mesAtual && d.getFullYear() === anoAtual;
+        });
+        const totalMes = despesasMes.reduce((acc, e) => acc + parseFloat(e.amount || 0), 0);
+
+        // Agrupar por categoria (do mês)
+        const categorias = {};
+        despesasMes.forEach(e => {
+            const cat = e.category || 'Outros';
+            if (!categorias[cat]) categorias[cat] = 0;
+            categorias[cat] += parseFloat(e.amount || 0);
+        });
+
+        // Cores para o gráfico de pizza
+        const coresPizza = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
+        
+        // Preparar dados do gráfico
+        const dadosPizza = Object.keys(categorias).map((cat, i) => ({
+            categoria: cat,
+            valor: categorias[cat],
+            cor: coresPizza[i % coresPizza.length],
+            percentual: totalMes > 0 ? ((categorias[cat] / totalMes) * 100).toFixed(1) : 0
+        }));
+
         let html = '<div class="card">';
         html += '<div class="card-header">';
         html += '<h2>Despesas (' + expenses.length + ' encontradas)</h2>';
@@ -2047,18 +2076,72 @@ async function loadExpenses() {
         html += '</div>';
         html += '<div class="card-body">';
 
+        // KPI + Gráfico de Pizza
+        const nomeMes = hoje.toLocaleString('pt-BR', { month: 'long' });
+        html += '<div class="expense-summary-row">';
+        html += '<div class="expense-kpi-card">';
+        html += '<div class="kpi-label">Total de Despesas em ' + nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1) + '</div>';
+        html += '<div class="kpi-value">' + formatCurrency(totalMes) + '</div>';
+        html += '<div class="kpi-count">' + despesasMes.length + ' despesa(s)</div>';
+        html += '</div>';
+        
+        // Gráfico de Pizza SVG
+        html += '<div class="expense-chart-card">';
+        html += '<div class="chart-title">Por Categoria</div>';
+        if (dadosPizza.length > 0 && totalMes > 0) {
+            html += '<div class="pie-chart-container">';
+            html += '<svg viewBox="0 0 200 200" class="pie-chart-svg">';
+            
+            let acumulado = 0;
+            dadosPizza.forEach((d, idx) => {
+                const angulo = (d.valor / totalMes) * 360;
+                const startAngle = acumulado;
+                const endAngle = acumulado + angulo;
+                acumulado += angulo;
+                
+                // Calcular coordenadas do arco
+                const startRad = (startAngle - 90) * Math.PI / 180;
+                const endRad = (endAngle - 90) * Math.PI / 180;
+                const x1 = 100 + 80 * Math.cos(startRad);
+                const y1 = 100 + 80 * Math.sin(startRad);
+                const x2 = 100 + 80 * Math.cos(endRad);
+                const y2 = 100 + 80 * Math.sin(endRad);
+                const largeArc = angulo > 180 ? 1 : 0;
+                
+                const pathD = `M100,100 L${x1},${y1} A80,80 0 ${largeArc},1 ${x2},${y2} Z`;
+                html += `<path d="${pathD}" fill="${d.cor}" class="pie-slice" data-tooltip="${d.categoria}: ${formatCurrency(d.valor)} (${d.percentual}%)"></path>`;
+            });
+            
+            html += '</svg>';
+            html += '<div class="pie-tooltip" id="pie-tooltip"></div>';
+            html += '</div>';
+            
+            // Legenda
+            html += '<div class="pie-legend">';
+            dadosPizza.forEach(d => {
+                html += `<div class="legend-item"><span class="legend-color" style="background:${d.cor}"></span>${d.categoria}</div>`;
+            });
+            html += '</div>';
+        } else {
+            html += '<div class="no-chart-data">Sem despesas no mês</div>';
+        }
+        html += '</div>';
+        html += '</div>';
+
         if (expenses.length === 0) {
             html += '<p style="text-align:center; color:var(--text-secondary);">Nenhuma despesa encontrada</p>';
         } else {
             html += '<table class="table">';
-            html += '<thead><tr><th>Propriedade</th><th>Descrição</th><th>Valor</th><th>Data</th><th>Status</th><th>Ações</th></tr></thead>';
+            html += '<thead><tr><th>Empreendimento</th><th>Categoria</th><th>Descrição</th><th>Valor</th><th>Data</th><th>Status</th><th>Ações</th></tr></thead>';
             html += '<tbody>';
             
             expenses.forEach((ex, index) => {
                 console.log(`Despesa ${index + 1}:`, ex.description, ex.status);
                 const badge = `<span class="badge badge-${ex.status}">${ex.status}</span>`;
+                const categoria = ex.category || 'Outros';
                 html += '<tr>';
-                html += '<td data-label="Propriedade">' + (ex.property_address || 'Despesa geral') + '</td>';
+                html += '<td data-label="Empreendimento">' + (ex.property_address || 'Geral') + '</td>';
+                html += '<td data-label="Categoria"><span class="category-tag">' + categoria + '</span></td>';
                 html += '<td data-label="Descrição">' + ex.description + '</td>';
                 html += '<td data-label="Valor">' + formatCurrency(ex.amount) + '</td>';
                 html += '<td data-label="Data">' + formatDate(ex.expense_date) + '</td>';
@@ -2086,6 +2169,25 @@ async function loadExpenses() {
         contentElement.innerHTML = html;
         console.log('HTML inserido com sucesso!');
 
+        // Configurar tooltip do gráfico
+        document.querySelectorAll('.pie-slice').forEach(slice => {
+            slice.addEventListener('mouseenter', (e) => {
+                const tooltip = document.getElementById('pie-tooltip');
+                tooltip.textContent = e.target.dataset.tooltip;
+                tooltip.style.opacity = '1';
+            });
+            slice.addEventListener('mousemove', (e) => {
+                const tooltip = document.getElementById('pie-tooltip');
+                const container = document.querySelector('.pie-chart-container');
+                const rect = container.getBoundingClientRect();
+                tooltip.style.left = (e.clientX - rect.left + 10) + 'px';
+                tooltip.style.top = (e.clientY - rect.top - 30) + 'px';
+            });
+            slice.addEventListener('mouseleave', () => {
+                document.getElementById('pie-tooltip').style.opacity = '0';
+            });
+        });
+
         // Configurar filtro
         const filterElement = document.getElementById('expense-status-filter');
         if (filterElement) {
@@ -2108,16 +2210,18 @@ function filterExpenses(allExpenses, status) {
     console.log('Despesas filtradas:', filtered.length);
     
     let tableHtml = '<table class="table">';
-    tableHtml += '<thead><tr><th>Propriedade</th><th>Descrição</th><th>Valor</th><th>Data</th><th>Status</th><th>Ações</th></tr></thead>';
+    tableHtml += '<thead><tr><th>Empreendimento</th><th>Categoria</th><th>Descrição</th><th>Valor</th><th>Data</th><th>Status</th><th>Ações</th></tr></thead>';
     tableHtml += '<tbody>';
     
     if (filtered.length === 0) {
-        tableHtml += '<tr><td colspan="6" style="text-align:center; color:var(--text-secondary);">Nenhuma despesa</td></tr>';
+        tableHtml += '<tr><td colspan="7" style="text-align:center; color:var(--text-secondary);">Nenhuma despesa</td></tr>';
     } else {
         filtered.forEach(ex => {
             const badge = `<span class="badge badge-${ex.status}">${ex.status}</span>`;
+            const categoria = ex.category || 'Outros';
             tableHtml += '<tr>';
-            tableHtml += '<td data-label="Propriedade">' + (ex.property_address || 'Despesa geral') + '</td>';
+            tableHtml += '<td data-label="Empreendimento">' + (ex.property_address || 'Geral') + '</td>';
+            tableHtml += '<td data-label="Categoria"><span class="category-tag">' + categoria + '</span></td>';
             tableHtml += '<td data-label="Descrição">' + ex.description + '</td>';
             tableHtml += '<td data-label="Valor">' + formatCurrency(ex.amount) + '</td>';
             tableHtml += '<td data-label="Data">' + formatDate(ex.expense_date) + '</td>';
@@ -2133,9 +2237,10 @@ function filterExpenses(allExpenses, status) {
     
     tableHtml += '</tbody></table>';
     
-    const cardBody = document.querySelector('.card-body');
-    if (cardBody) {
-        cardBody.innerHTML = tableHtml;
+    // Preservar KPI e gráfico, só atualizar tabela
+    const existingTable = document.querySelector('.card-body .table');
+    if (existingTable) {
+        existingTable.outerHTML = tableHtml;
     }
 }
 
