@@ -1128,12 +1128,14 @@ a {
 
 /* ===== DESPESAS - KPI E GRÁFICO ===== */
 .expense-top-widgets {
+    display: inline-block;
     max-width: 720px;
     margin-bottom: 20px;
 }
 
 .expense-top-widgets .card {
-    width: 100%;
+    display: inline-block;
+    width: auto;
 }
 
 .expense-summary-row {
