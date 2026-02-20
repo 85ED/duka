@@ -1129,64 +1129,61 @@ a {
 /* ===== DESPESAS - KPI E GRÁFICO ===== */
 .expense-summary-row {
     display: flex;
-    gap: 24px;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+    align-items: stretch;
 }
 
 .expense-kpi-card {
     flex: 1;
-    min-width: 200px;
-    max-width: 300px;
     background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-    border-radius: 16px;
-    padding: 24px;
+    border-radius: 12px;
+    padding: 16px 20px;
     color: white;
     box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .expense-kpi-card .kpi-label {
-    font-size: 14px;
+    font-size: 12px;
     opacity: 0.9;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .expense-kpi-card .kpi-value {
-    font-size: 32px;
+    font-size: 24px;
     font-weight: 700;
     margin-bottom: 4px;
 }
 
 .expense-kpi-card .kpi-count {
-    font-size: 13px;
+    font-size: 12px;
     opacity: 0.8;
 }
 
 .expense-chart-card {
-    flex: 2;
-    min-width: 280px;
+    flex: 1;
     background: white;
-    border-radius: 16px;
-    padding: 20px;
+    border-radius: 12px;
+    padding: 12px 16px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     border: 1px solid var(--gray-200);
     display: flex;
-    flex-direction: column;
     align-items: center;
+    gap: 16px;
 }
 
 .expense-chart-card .chart-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-bottom: 16px;
-    align-self: flex-start;
+    display: none;
 }
 
 .pie-chart-container {
     position: relative;
-    width: 160px;
-    height: 160px;
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
 }
 
 .pie-chart-svg {
@@ -1202,7 +1199,7 @@ a {
 
 .pie-slice:hover {
     filter: brightness(1.1);
-    transform: scale(1.03);
+    transform: scale(1.05);
 }
 
 .pie-tooltip {
@@ -1211,7 +1208,7 @@ a {
     color: white;
     padding: 8px 12px;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 12px;
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.2s;
@@ -1222,85 +1219,64 @@ a {
 .pie-legend {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 16px;
-    justify-content: center;
+    gap: 8px;
+    flex: 1;
 }
 
 .legend-item {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 12px;
+    gap: 5px;
+    font-size: 11px;
     color: var(--text-secondary);
 }
 
 .legend-color {
-    width: 12px;
-    height: 12px;
-    border-radius: 3px;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
 }
 
 .no-chart-data {
     color: var(--text-secondary);
-    font-size: 14px;
-    padding: 40px 0;
+    font-size: 13px;
+    padding: 20px 0;
 }
 
 .category-tag {
     display: inline-block;
-    padding: 4px 10px;
+    padding: 3px 8px;
     background: #f1f5f9;
     color: #475569;
-    border-radius: 12px;
-    font-size: 12px;
+    border-radius: 10px;
+    font-size: 11px;
     font-weight: 500;
 }
 
 /* Responsivo para despesas */
-@media (max-width: 768px) {
+@media (max-width: 600px) {
     .expense-summary-row {
         flex-direction: column;
-        gap: 16px;
-    }
-    
-    .expense-kpi-card {
-        max-width: 100%;
+        gap: 12px;
     }
     
     .expense-kpi-card .kpi-value {
-        font-size: 28px;
+        font-size: 22px;
     }
     
     .expense-chart-card {
-        min-width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
     }
     
     .pie-chart-container {
-        width: 140px;
-        height: 140px;
+        width: 70px;
+        height: 70px;
+        align-self: center;
     }
     
     .pie-legend {
-        gap: 8px;
-    }
-    
-    .legend-item {
-        font-size: 11px;
-    }
-}
-
-@media (max-width: 480px) {
-    .expense-kpi-card {
-        padding: 16px;
-    }
-    
-    .expense-kpi-card .kpi-value {
-        font-size: 24px;
-    }
-    
-    .pie-chart-container {
-        width: 120px;
-        height: 120px;
+        justify-content: center;
     }
 }
