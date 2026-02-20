@@ -2161,7 +2161,7 @@ async function showPartnerShareForm() {
                     <select id="share-partner-id" required>
                         <option value="">Escolha um usuário...</option>`;
     availableUsers.forEach(u => {
-        const label = u.id === currentUser.id ? `${u.name} (${u.email}) - Admin (você)` : `${u.name} (${u.email}) - ${u.role === 'client_admin' ? 'Admin' : 'Membro'}`;
+        const label = (u.id === currentUser.id) ? `${u.name} (${u.email}) - Admin (você)` : `${u.name} (${u.email}) - ${(u.role === 'client_admin' ? 'Admin' : 'Membro')}`;
         form += `<option value="${u.id}">${label}</option>`;
     });
     form += `</select>
