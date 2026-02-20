@@ -1127,15 +1127,22 @@ a {
 }
 
 /* ===== DESPESAS - KPI E GRÁFICO ===== */
+.card-resumo-despesas {
+    width: fit-content;
+    max-width: 100%;
+    margin-bottom: 20px;
+}
+
 .expense-summary-row {
     display: flex;
     gap: 16px;
     margin-bottom: 20px;
     align-items: stretch;
+    max-width: 720px;
 }
 
 .expense-kpi-card {
-    flex: 1;
+    flex: 0 0 320px;
     background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
     border-radius: 12px;
     padding: 16px 20px;
@@ -1164,7 +1171,7 @@ a {
 }
 
 .expense-chart-card {
-    flex: 1;
+    flex: 0 0 360px;
     background: white;
     border-radius: 12px;
     padding: 12px 16px;
@@ -1257,7 +1264,13 @@ a {
 @media (max-width: 600px) {
     .expense-summary-row {
         flex-direction: column;
-        gap: 12px;
+        max-width: 100%;
+    }
+    
+    .expense-kpi-card,
+    .expense-chart-card {
+        flex: unset;
+        width: 100%;
     }
     
     .expense-kpi-card .kpi-value {
