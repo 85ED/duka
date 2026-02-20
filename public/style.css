@@ -1137,9 +1137,11 @@ a {
 }
 
 .expense-top-widgets .card {
+    display: inline-block;
     background: transparent;
     box-shadow: none;
     border: none;
+    margin-bottom: 0;
 }
 
 .expense-summary-row {
