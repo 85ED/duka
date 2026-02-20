@@ -146,3 +146,30 @@ exports.listContractHistory = async (req, res) => {
     }
 };
 
+// Update contract fields
+exports.updateContract = async (req, res) => {
+    try {
+        const { contractId } = req.params;
+        const { contractUrl, contractAddress, rentAmount, endDate, dueDay, lateFeeDaily, lateFeePencent } = req.body;
+
+        const updated = await Contract.update(contractId, req.user.accountId, {
+            contract_url: contractUrl,
+            contract_address: contractAddress,
+            rent_amount: rentAmount,
+            end_date: endDate,
+            due_day: dueDay,
+            late_fee_daily: lateFeeDaily,
+            late_fee_percent: lateFeePencent
+        });
+
+        if (!updated) {
+            return res.status(404).json({ error: 'Contrato não encontrado ou nenhuma alteração foi feita' });
+        }
+
+        res.json({ message: 'Contrato atualizado com sucesso' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Erro ao atualizar contrato' });
+    }
+};
+

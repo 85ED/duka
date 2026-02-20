@@ -1,8 +1,8 @@
 const db = require('../config/database');
 
 class Payment {
-    // Baixa rápida - 1 clique, data de hoje, valor total
-    static async quickPay({ accountId, chargeId, userId }) {
+    // Baixa rápida - Permite data de pagamento customizada e valor customizado
+    static async quickPay({ accountId, chargeId, userId, amountPaid, paymentDate, paymentMethod }) {
         const connection = await db.getConnection();
         await connection.beginTransaction();
 
@@ -21,25 +21,34 @@ class Payment {
 
             if (charge.status === 'paid') throw new Error('Cobrança já está paga');
 
-            // 2. Calcular valor com juros se atrasado
-            const hoje = new Date();
-            const vencimento = new Date(charge.due_date);
-            let valorFinal = parseFloat(charge.total_amount);
+            // 2. Usar valores fornecidos ou calcular padrões
+            const dataPagamento = paymentDate || new Date().toISOString().split('T')[0];
+            const metodo = paymentMethod || 'pix';
+            let valorFinal = amountPaid || parseFloat(charge.total_amount);
             let diasAtraso = 0;
             let juros = 0;
 
-            if (hoje > vencimento) {
-                diasAtraso = Math.floor((hoje - vencimento) / (1000 * 60 * 60 * 24));
-                const taxaDiaria = parseFloat(charge.late_fee_daily || 0.0333);
-                juros = valorFinal * (taxaDiaria / 100) * diasAtraso;
-                valorFinal += juros;
+            // Calcular juros baseado na data de pagamento informada
+            if (dataPagamento) {
+                const vencimento = new Date(charge.due_date + 'T00:00:00');
+                const pagamento = new Date(dataPagamento + 'T00:00:00');
+                
+                if (pagamento > vencimento) {
+                    diasAtraso = Math.floor((pagamento - vencimento) / (1000 * 60 * 60 * 24));
+                    const taxaDiaria = parseFloat(charge.late_fee_daily || 0.0333);
+                    juros = parseFloat(charge.total_amount) * (taxaDiaria / 100) * diasAtraso;
+                    
+                    // Se amountPaid não foi fornecido, usa o valor com juros
+                    if (!amountPaid) {
+                        valorFinal = parseFloat(charge.total_amount) + juros;
+                    }
+                }
             }
 
             // 3. Registrar pagamento
-            const dataHoje = hoje.toISOString().split('T')[0];
             await connection.execute(
-                'INSERT INTO payments (account_id, charge_id, created_by_user_id, amount_paid, payment_date, payment_method, status) VALUES (?, ?, ?, ?, ?, "pix", "confirmed")',
-                [accountId, chargeId, userId, valorFinal, dataHoje]
+                'INSERT INTO payments (account_id, charge_id, created_by_user_id, amount_paid, payment_date, payment_method, status) VALUES (?, ?, ?, ?, ?, ?, "confirmed")',
+                [accountId, chargeId, userId, valorFinal, dataPagamento, metodo]
             );
 
             // 4. Atualizar status da cobrança
@@ -55,7 +64,8 @@ class Payment {
                 diasAtraso,
                 juros: Math.round(juros * 100) / 100,
                 valorPago: Math.round(valorFinal * 100) / 100,
-                dataPagamento: dataHoje
+                dataPagamento,
+                metodo
             };
 
         } catch (error) {

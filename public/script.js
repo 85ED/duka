@@ -953,6 +953,7 @@ async function loadContracts() {
                         <br><small>${vigencia}</small>
                     </td>
                     <td style="text-align: center;">
+                        ${c.contract_url ? `<a href="${c.contract_url}" target="_blank" class="btn btn-small btn-primary" style="text-decoration: none; display: inline-block;"><i class="fa-solid fa-file-pdf"></i> PDF</a>` : ''}
                         <button class="btn btn-small btn-secondary" onclick="showEditContractForm(${c.id})"><i class="fa-solid fa-pen"></i> Editar</button>
                         <button class="btn btn-small btn-secondary" onclick="showContractServices(${c.id})">Servicos</button>
                     </td>
@@ -1076,18 +1077,25 @@ async function showEditContractForm(contractId) {
             }
         }
         
-        const contractAddress = contract.contract_address ? contract.contract_address : 'Nao informado';
-        const contractLink = contract.contract_url
-            ? `<a href="${contract.contract_url}" target="_blank" rel="noopener">Abrir contrato (PDF)</a>`
-            : 'Nao informado';
+        const contractAddress = contract.contract_address ? contract.contract_address : 'Não informado';
+        let contractLinkHtml = `<span style="color: var(--text-secondary); font-style: italic;">Não vinculado</span>`;
+        if (contract.contract_url) {
+            contractLinkHtml = `<a href="${contract.contract_url}" target="_blank" rel="noopener" style="color: var(--primary-color); text-decoration: none; font-weight: 500;"><i class="fa-solid fa-file-pdf"></i> ${contract.contract_url}</a>`;
+        }
 
         let form = `<h2>Contrato: ${contract.location_name || contract.property_address}</h2>
             <p><strong>Inquilino:</strong> ${contract.tenant_name}</p>
-            <p><strong>Endereco do contrato:</strong> ${contractAddress}</p>
-            <p><strong>Link do contrato:</strong> ${contractLink}</p>
+            <p><strong>Endereço do contrato:</strong> ${contractAddress}</p>
+            <p><strong>Link do contrato:</strong> ${contractLinkHtml}</p>
             <p><strong>Status:</strong> ${statusContrato}</p>
             <hr>
             <form id="edit-contract-form">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="font-weight: 600;">Link do Contrato (URL do PDF)</label>
+                    <input type="url" id="edit-contract-url" placeholder="https://exemplo.com/contrato.pdf" value="${contract.contract_url || ''}" style="width: 100%; padding: 10px; border-radius: 6px; border: 2px solid var(--light-border-color);">
+                    <small style="color: var(--text-secondary); margin-top: 6px; display: block;">Cole aqui o link para o contrato em PDF (Google Drive, OneDrive, etc)</small>
+                </div>
+                
                 <div class="form-row">
                     <div class="form-group">
                         <label>Data Inicial</label>
@@ -1129,9 +1137,21 @@ async function showEditContractForm(contractId) {
         
         document.getElementById('edit-contract-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            // TODO: Implementar endpoint de atualização
-            alert('Funcionalidade de edição será implementada em breve');
-            closeModal();
+            try {
+                await apiCall(`/contracts/${contractId}`, 'PUT', {
+                    contractUrl: document.getElementById('edit-contract-url').value || null,
+                    rentAmount: parseFloat(document.getElementById('edit-rent-amount').value),
+                    endDate: document.getElementById('edit-end-date').value || null,
+                    dueDay: parseInt(document.getElementById('edit-due-day').value),
+                    lateFeeDaily: parseFloat(document.getElementById('edit-late-fee').value),
+                    lateFeePencent: parseFloat(document.getElementById('edit-late-fee-percent').value)
+                });
+                closeModal();
+                showToast('Contrato atualizado com sucesso!', 'success');
+                loadContracts();
+            } catch (error) {
+                showToast('Erro: ' + error.message, 'error');
+            }
         });
     } catch (error) {
         alert('Erro: ' + error.message);
@@ -1424,20 +1444,32 @@ async function quickPay(chargeId) {
                 juros,
                 valorComJuros,
                 tenantName: charge.tenant_name,
-                propertyAddress: charge.property_address
+                propertyAddress: charge.property_address,
+                dueDate: charge.due_date,
+                taxaDiaria: charge.late_fee_daily
             });
         } else {
-            // Pagamento sem juros - processar direto
-            const result = await apiCall(`/charges/${chargeId}/quick-pay`, 'POST');
-            showToast('Pagamento registrado com sucesso!', 'success');
-            loadCharges();
+            // Pagamento sem juros - abrir modal também para confirmar data
+            showPaymentConfirmationModal({
+                chargeId,
+                valorOriginal,
+                diasAtraso: 0,
+                juros: 0,
+                valorComJuros: valorOriginal,
+                tenantName: charge.tenant_name,
+                propertyAddress: charge.property_address,
+                dueDate: charge.due_date,
+                taxaDiaria: charge.late_fee_daily
+            });
         }
     } catch (error) {
         showToast('Erro: ' + error.message, 'error');
     }
 }
 
-function showPaymentConfirmationModal({ chargeId, valorOriginal, diasAtraso, juros, valorComJuros, tenantName, propertyAddress }) {
+function showPaymentConfirmationModal({ chargeId, valorOriginal, diasAtraso, juros, valorComJuros, tenantName, propertyAddress, dueDate, taxaDiaria }) {
+    const hoje = new Date().toISOString().split('T')[0];
+    
     const form = `<h2>💵 Confirmar Pagamento</h2>
         <div style="background: var(--light-bg); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
             <p style="margin: 0 0 4px 0; color: var(--text-secondary); font-size: 13px;">Inquilino</p>
@@ -1446,38 +1478,58 @@ function showPaymentConfirmationModal({ chargeId, valorOriginal, diasAtraso, jur
             <p style="margin: 0; font-weight: 600;">${propertyAddress}</p>
         </div>
         
-        <div style="background: #fff3cd; border-left: 4px solid var(--warning-color); padding: 14px; border-radius: 6px; margin-bottom: 20px;">
-            <p style="margin: 0; font-size: 14px; color: #856404;">
-                <i class="fa-solid fa-triangle-exclamation" style="margin-right: 8px;"></i>
-                <strong>Cobrança vencida há ${diasAtraso} dia${diasAtraso > 1 ? 's' : ''}</strong>
-            </p>
-        </div>
-
-        <div style="background: var(--light-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                <span style="color: var(--text-secondary);">Valor original:</span>
-                <strong>${formatCurrency(valorOriginal)}</strong>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
-                <span style="color: var(--danger-color);">
-                    <i class="fa-solid fa-plus" style="font-size: 10px;"></i> Juros (${diasAtraso} dia${diasAtraso > 1 ? 's' : ''}):  
-                </span>
-                <strong style="color: var(--danger-color);">+${formatCurrency(juros)}</strong>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 18px;">
-                <strong>Valor a pagar:</strong>
-                <strong style="color: var(--primary-color);">${formatCurrency(valorComJuros)}</strong>
-            </div>
-        </div>
-
         <form id="payment-form">
-            <div class="form-group">
-                <label>Valor efetivamente pago (R$) *</label>
-                <input type="number" id="payment-amount" step="0.01" value="${valorComJuros.toFixed(2)}" required 
-                       style="font-size: 18px; font-weight: 600; color: var(--primary-color);">
-                <small style="color: var(--text-secondary); margin-top: 6px; display: block;">
-                    Altere se o valor pago foi diferente do calculado
+            <!-- Data de Pagamento -->
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="font-weight: 600; color: var(--primary-color);">
+                    <i class="fa-solid fa-calendar"></i> Data do Pagamento *
+                </label>
+                <input type="date" id="payment-date" value="${hoje}" required 
+                       style="width: 100%; padding: 10px; border-radius: 6px; border: 2px solid var(--primary-color); font-size: 16px;">
+                <small style="color: var(--text-secondary); margin-top: 4px; display: block;">
+                    Informe o dia real em que o pagamento foi efetuado
                 </small>
+            </div>
+
+            <!-- Resumo de Valores (dinâmico) -->
+            <div style="background: var(--light-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <span style="color: var(--text-secondary);">Valor original:</span>
+                    <strong>${formatCurrency(valorOriginal)}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                    <span style="color: var(--danger-color);">
+                        <i class="fa-solid fa-plus" style="font-size: 10px;"></i> Juros (<span id="dias-atraso">${diasAtraso}</span> dia${ diasAtraso > 1 ? 's' : ''}):  
+                    </span>
+                    <strong style="color: var(--danger-color);" id="juros-valor">+${formatCurrency(juros)}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 18px;">
+                    <strong>Valor a pagar:</strong>
+                    <strong style="color: var(--primary-color);" id="valor-total">${formatCurrency(valorComJuros)}</strong>
+                </div>
+            </div>
+
+            <!-- Valor Efetivamente Pago -->
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="font-weight: 600;">Valor efetivamente pago (R$) *</label>
+                <input type="number" id="payment-amount" step="0.01" value="${valorComJuros.toFixed(2)}" required 
+                       style="width: 100%; padding: 12px; font-size: 18px; font-weight: 600; color: var(--primary-color); border-radius: 6px; border: 2px solid var(--light-border-color);">
+                <small style="color: var(--text-secondary); margin-top: 6px; display: block;">
+                    Altere se o valor pago foi diferente do calculado (ex: pagamento parcial)
+                </small>
+            </div>
+
+            <!-- Método de Pagamento -->
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="font-weight: 600;">Método de Pagamento *</label>
+                <select id="payment-method" required style="width: 100%; padding: 10px; border-radius: 6px; border: 2px solid var(--light-border-color);">
+                    <option value="pix">PIX</option>
+                    <option value="boleto">Boleto</option>
+                    <option value="deposito">Depósito</option>
+                    <option value="transferencia">Transferência</option>
+                    <option value="dinheiro">Dinheiro</option>
+                    <option value="cheque">Cheque</option>
+                </select>
             </div>
             
             <div class="form-actions">
@@ -1490,12 +1542,50 @@ function showPaymentConfirmationModal({ chargeId, valorOriginal, diasAtraso, jur
 
     openModal(form);
 
+    // Função para recalcular juros baseado na data informada
+    function recalcularJuros() {
+        const dataPagamento = document.getElementById('payment-date').value;
+        const dataParcela = new Date(dueDate);
+        const dataPago = new Date(dataPagamento + 'T00:00:00');
+        
+        let novosDias = 0;
+        let novosJuros = 0;
+        
+        if (dataPago > dataParcela) {
+            novosDias = Math.floor((dataPago - dataParcela) / (1000 * 60 * 60 * 24));
+            const taxa = taxaDiaria || 0.0333;
+            novosJuros = valorOriginal * (taxa / 100) * novosDias;
+        }
+        
+        const novoValorTotal = valorOriginal + novosJuros;
+        
+        document.getElementById('dias-atraso').textContent = novosDias;
+        document.getElementById('juros-valor').textContent = `+${formatCurrency(novosJuros)}`;
+        document.getElementById('valor-total').textContent = formatCurrency(novoValorTotal);
+        
+        // Atualizar campo de valor a pagar se não foi alterado manualmente
+        const amountInput = document.getElementById('payment-amount');
+        if (amountInput.value === valorComJuros.toFixed(2) || amountInput.value === (valorOriginal + juros).toFixed(2)) {
+            amountInput.value = novoValorTotal.toFixed(2);
+        }
+    }
+
+    // Listener para mudança de data
+    document.getElementById('payment-date').addEventListener('change', recalcularJuros);
+
+    // Submit form
     document.getElementById('payment-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const valorPago = parseFloat(document.getElementById('payment-amount').value);
+        const dataPagamento = document.getElementById('payment-date').value;
+        const metodo = document.getElementById('payment-method').value;
         
         try {
-            await apiCall(`/charges/${chargeId}/quick-pay`, 'POST', { amountPaid: valorPago });
+            await apiCall(`/charges/${chargeId}/quick-pay`, 'POST', { 
+                amountPaid: valorPago,
+                paymentDate: dataPagamento,
+                paymentMethod: metodo
+            });
             closeModal();
             
             // Calcular diferença para exibir no toast

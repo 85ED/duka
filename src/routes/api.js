@@ -67,6 +67,7 @@ router.get('/tenants', propertyController.listTenants);
 router.post('/contracts', contractController.createContract);
 router.get('/contracts', contractController.listContracts);
 router.get('/contracts/:id', contractController.getContract);
+router.put('/contracts/:contractId', contractController.updateContract);
 router.get('/contracts/:contractId/services', contractServiceController.listContractServices);
 router.post('/contracts/:contractId/services', contractServiceController.addContractService);
 router.put('/contracts/:contractId/services/:contractServiceId', contractServiceController.deactivateContractService);

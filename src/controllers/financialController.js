@@ -68,11 +68,15 @@ exports.registerPayment = async (req, res) => {
 exports.quickPayment = async (req, res) => {
     try {
         const { chargeId } = req.params;
+        const { amountPaid, paymentDate, paymentMethod } = req.body;
 
         const result = await Payment.quickPay({
             accountId: req.user.accountId,
             chargeId: parseInt(chargeId),
-            userId: req.user.id
+            userId: req.user.id,
+            amountPaid,
+            paymentDate,
+            paymentMethod
         });
 
         res.json(result);

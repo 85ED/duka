@@ -182,6 +182,34 @@ class Contract {
         );
         return rows[0];
     }
+
+    // Update contract fields
+    static async update(id, accountId, updateData) {
+        const allowedFields = ['contract_url', 'contract_address', 'rent_amount', 'end_date', 'due_day', 'late_fee_daily', 'late_fee_percent'];
+        const updates = {};
+
+        Object.keys(updateData).forEach(key => {
+            if (allowedFields.includes(key) && updateData[key] !== undefined) {
+                updates[key] = updateData[key];
+            }
+        });
+
+        if (Object.keys(updates).length === 0) {
+            return false;
+        }
+
+        const setClause = Object.keys(updates).map(key => `${key} = ?`).join(', ');
+        const values = Object.values(updates);
+        values.push(id, accountId);
+
+        const result = await db.execute(
+            `UPDATE contracts SET ${setClause} WHERE id = ? AND account_id = ?`,
+            values
+        );
+
+        return result[0].affectedRows > 0;
+    }
 }
 
 module.exports = Contract;
+
