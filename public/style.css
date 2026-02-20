@@ -1137,6 +1137,16 @@ a {
     align-self: flex-start;
 }
 
+/* prevent flex container at root stretching content */
+.app-section.active > main {
+    align-self: flex-start;
+    width: auto;
+}
+
+.app-section.active > main > .content-area {
+    align-self: flex-start;
+}
+
 .expense-top-widgets .card {
     background: transparent;
     box-shadow: none;
