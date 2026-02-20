@@ -1135,6 +1135,7 @@ a {
     padding: 16px;
     margin-bottom: 20px;
     align-self: flex-start;
+    border: 2px solid var(--primary-color);
 }
 
 /* prevent flex container at root stretching content */
