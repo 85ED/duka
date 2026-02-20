@@ -1127,10 +1127,13 @@ a {
 }
 
 /* ===== DESPESAS - KPI E GRÁFICO ===== */
-.card-resumo-despesas {
-    width: fit-content;
-    max-width: 100%;
+.expense-top-widgets {
+    max-width: 720px;
     margin-bottom: 20px;
+}
+
+.expense-top-widgets .card {
+    width: 100%;
 }
 
 .expense-summary-row {

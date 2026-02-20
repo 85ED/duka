@@ -2078,7 +2078,7 @@ async function loadExpenses() {
 
         // KPI + Gráfico de Pizza
         const nomeMes = hoje.toLocaleString('pt-BR', { month: 'long' });
-        html += '<div class="card card-resumo-despesas"><div class="expense-summary-row">';
+        html += '<div class="expense-top-widgets"><div class="card"><div class="expense-summary-row">';
         html += '<div class="expense-kpi-card">';
         html += '<div class="kpi-label">Total de Despesas em ' + nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1) + '</div>';
         html += '<div class="kpi-value">' + formatCurrency(totalMes) + '</div>';
@@ -2126,7 +2126,7 @@ async function loadExpenses() {
             html += '<div class="no-chart-data">Sem despesas no mês</div>';
         }
         html += '</div>';
-        html += '</div></div>';
+        html += '</div></div></div>';
 
         if (expenses.length === 0) {
             html += '<p style="text-align:center; color:var(--text-secondary);">Nenhuma despesa encontrada</p>';
