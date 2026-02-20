@@ -2153,10 +2153,17 @@ async function loadUsers() {
         if (users.length === 0) {
             html += '<p style="text-align: center; color: var(--text-secondary);">Nenhum usuário</p>';
         } else {
-            html += '<table class="table"><thead><tr><th>Nome</th><th>E-mail</th><th>Função</th></tr></thead><tbody>';
+            html += '<table class="table"><thead><tr><th>Nome</th><th>E-mail</th><th>Função</th><th>Ações</th></tr></thead><tbody>';
             users.forEach(u => {
                 const role = u.role === 'admin' ? 'Administrador' : 'Membro';
-                html += `<tr><td data-label="Nome">${u.name}</td><td data-label="E-mail">${u.email}</td><td data-label="Função">${role}</td></tr>`;
+                html += `<tr>
+                    <td data-label="Nome">${u.name}</td>
+                    <td data-label="E-mail">${u.email}</td>
+                    <td data-label="Função">${role}</td>
+                    <td data-label="Ações" class="td-actions">
+                        <button class="btn btn-small btn-secondary" onclick="showEditSystemUserForm(${u.id}, '${u.name.replace(/'/g, '\\'')}', '${u.email.replace(/'/g, '\\'')}', '${u.role}')">Editar</button>
+                    </td>
+                </tr>`;
             });
             html += '</tbody></table>';
         }
@@ -2166,6 +2173,54 @@ async function loadUsers() {
     } catch (error) {
         document.getElementById('content').innerHTML = `<div class="error-message show">${error.message}</div>`;
     }
+}
+
+// Modal para editar usuário do sistema
+function showEditSystemUserForm(userId, currentName, currentEmail, currentRole) {
+    const form = `<h2>Editar Usuário</h2>
+        <form id="edit-system-user-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nome *</label>
+                    <input type="text" id="edit-system-user-name" value="${currentName}" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>E-mail *</label>
+                    <input type="email" id="edit-system-user-email" value="${currentEmail}" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Função *</label>
+                    <select id="edit-system-user-role" required>
+                        <option value="member" ${currentRole === 'member' ? 'selected' : ''}>Membro</option>
+                        <option value="admin" ${currentRole === 'admin' ? 'selected' : ''}>Administrador</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" data-modal-cancel>Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+        </form>`;
+    openModal(form);
+
+    document.getElementById('edit-system-user-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            await apiCall(`/users/${userId}`, 'PUT', {
+                name: document.getElementById('edit-system-user-name').value,
+                email: document.getElementById('edit-system-user-email').value,
+                role: document.getElementById('edit-system-user-role').value
+            });
+            closeModal();
+            loadUsers();
+        } catch (error) {
+            alert('Erro: ' + error.message);
+        }
+    });
 }
 
 // ===== ENTERPRISES (EMPREENDIMENTOS) =====

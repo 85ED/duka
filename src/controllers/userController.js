@@ -80,11 +80,18 @@ exports.setPartnerShare = async (req, res) => {
 exports.getPartners = async (req, res) => {
     try {
         const isAdmin = await User.isAdmin(req.user.id, req.user.accountId);
-        if (!isAdmin) {
-            return res.status(403).json({ error: 'Only admins can view partners' });
+        let partners = [];
+        if (isAdmin) {
+            partners = await PartnerShare.getPartnersOf(req.user.accountId, req.user.id);
+        } else {
+            // Sócio: buscar primary_user_id
+            const user = await User.findById(req.user.id, req.user.accountId);
+            if (user && user.primary_user_id) {
+                partners = await PartnerShare.getPartnersOf(req.user.accountId, user.primary_user_id);
+            } else {
+                return res.status(403).json({ error: 'Only admins or partners can view partners' });
+            }
         }
-
-        const partners = await PartnerShare.getPartnersOf(req.user.accountId, req.user.id);
         res.json(partners);
     } catch (error) {
         console.error(error);
@@ -124,11 +131,22 @@ exports.updatePartnerShare = async (req, res) => {
 exports.listUsers = async (req, res) => {
     try {
         const isAdmin = await User.isAdmin(req.user.id, req.user.accountId);
-        if (!isAdmin) {
-            return res.status(403).json({ error: 'Only admins can list users' });
+        let users = [];
+        if (isAdmin) {
+            users = await User.findAll(req.user.accountId);
+        } else {
+            // Sócio: buscar primary_user_id
+            const user = await User.findById(req.user.id, req.user.accountId);
+            if (user && user.primary_user_id) {
+                // Listar todos usuários do mesmo primary
+                users = await User.getPartnerUsers(user.primary_user_id, req.user.accountId);
+                // Incluir o primary também
+                const primary = await User.findById(user.primary_user_id, req.user.accountId);
+                if (primary) users.unshift(primary);
+            } else {
+                return res.status(403).json({ error: 'Only admins or partners can list users' });
+            }
         }
-
-        const users = await User.findAll(req.user.accountId);
         res.json(users);
     } catch (error) {
         console.error(error);
