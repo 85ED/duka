@@ -11,6 +11,7 @@ document.getElementById('login-form')?.addEventListener('submit', async (e) => {
 
     try {
         console.log(`[LOGIN] Enviando credenciais para: ${email}`);
+        
         const res = await fetch(`${API_BASE}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -18,30 +19,57 @@ document.getElementById('login-form')?.addEventListener('submit', async (e) => {
         });
 
         console.log(`[LOGIN] Response status: ${res.status}`);
-        const data = await res.json();
+        let data;
+        try {
+            data = await res.json();
+        } catch (parseErr) {
+            console.error(`[LOGIN] Erro ao fazer parse JSON:`, parseErr);
+            showError('login-error', 'Erro ao processar resposta do servidor');
+            return;
+        }
+        
         console.log(`[LOGIN] Response data:`, data);
         
-        if (!res.ok) throw new Error(data.error);
+        if (!res.ok) {
+            const errorMsg = data.error || `Erro ${res.status}: ${res.statusText}`;
+            console.error(`[LOGIN] Erro na resposta:`, errorMsg);
+            showError('login-error', errorMsg);
+            alert(`Erro ao fazer login: ${errorMsg}`);
+            return;
+        }
+
+        if (!data.token || !data.user) {
+            console.error(`[LOGIN] Resposta incompleta:`, data);
+            showError('login-error', 'Resposta incompleta do servidor');
+            alert('Erro: Resposta incompleta do servidor');
+            return;
+        }
 
         token = data.token;
         currentUser = data.user;
-        console.log(`[LOGIN] Token salvo:`, token ? 'SIM' : 'NÃO');
-        console.log(`[LOGIN] CurrentUser:`, currentUser);
+        console.log(`[LOGIN] Autenticação bem-sucedida para user_id: ${currentUser.id}`);
         
         localStorage.setItem('token', token);
         localStorage.setItem('currentUser', JSON.stringify(currentUser));
         
-        console.log(`[LOGIN] LocalStorage - Token:`, localStorage.getItem('token') ? 'SALVO' : 'NÃO SALVO');
-        console.log(`[LOGIN] LocalStorage - CurrentUser:`, localStorage.getItem('currentUser') ? 'SALVO' : 'NÃO SALVO');
+        console.log(`[LOGIN] LocalStorage atualizado`);
 
         showApp();
     } catch (error) {
-        console.error(`[LOGIN ERROR]`, error);
-        showError('login-error', error.message);
+        console.error(`[LOGIN] Erro não capturado:`, error);
+        showError('login-error', `Erro: ${error.message}`);
+        alert(`Erro ao fazer login: ${error.message}`);
     }
 });
 
 function showApp() {
+    if (!token || !currentUser || !currentUser.id) {
+        console.error(`[SHOWAPP] Sem autenticação válida`);
+        showError('login-error', 'Autenticação inválida. Faça login novamente.');
+        return;
+    }
+    
+    console.log(`[SHOWAPP] Exibindo app para user: ${currentUser.name}`);
     document.getElementById('login-section').classList.remove('active');
     document.getElementById('app-section').classList.add('active');
     document.getElementById('app-section').classList.remove('hidden');
