@@ -1170,12 +1170,14 @@ async function loadServices() {
         if (services.length === 0) {
             html += '<p style="text-align: center; color: var(--text-secondary);">Nenhum servico cadastrado</p>';
         } else {
-            html += '<table class="table"><thead><tr><th>Nome</th><th>Valor</th><th>Status</th><th>Acoes</th></tr></thead><tbody>';
+            html += '<table class="table"><thead><tr><th>Ícone</th><th>Nome</th><th>Valor</th><th>Status</th><th>Acoes</th></tr></thead><tbody>';
             services.forEach(s => {
                 const statusLabel = s.status === 'active' ? 'Ativo' : 'Inativo';
                 const actionLabel = s.status === 'active' ? 'Desativar' : 'Ativar';
                 const nextStatus = s.status === 'active' ? 'inactive' : 'active';
+                const icon = s.icon || 'fa-solid fa-circle-check';
                 html += `<tr>
+                    <td><i class="${icon}" style="font-size: 1.2em; color: var(--primary-color);"></i></td>
                     <td>${s.name}</td>
                     <td>${formatCurrency(s.default_price)}</td>
                     <td>${statusLabel}</td>
@@ -1195,16 +1197,46 @@ async function loadServices() {
 }
 
 function showCreateServiceForm() {
+    const iconOptions = [
+        { value: 'fa-solid fa-wifi', label: 'Wi-Fi / Internet', icon: 'fa-solid fa-wifi' },
+        { value: 'fa-solid fa-motorcycle', label: 'Garagem / Moto', icon: 'fa-solid fa-motorcycle' },
+        { value: 'fa-solid fa-car', label: 'Garagem / Carro', icon: 'fa-solid fa-car' },
+        { value: 'fa-solid fa-water', label: 'Água', icon: 'fa-solid fa-water' },
+        { value: 'fa-solid fa-lightbulb', label: 'Energia', icon: 'fa-solid fa-lightbulb' },
+        { value: 'fa-solid fa-fire', label: 'Gás', icon: 'fa-solid fa-fire' },
+        { value: 'fa-solid fa-building', label: 'Condomínio', icon: 'fa-solid fa-building' },
+        { value: 'fa-solid fa-broom', label: 'Limpeza', icon: 'fa-solid fa-broom' },
+        { value: 'fa-solid fa-shield-halved', label: 'Seguro', icon: 'fa-solid fa-shield-halved' },
+        { value: 'fa-solid fa-tv', label: 'TV / Streaming', icon: 'fa-solid fa-tv' },
+        { value: 'fa-solid fa-circle-check', label: 'Padrão', icon: 'fa-solid fa-circle-check' }
+    ];
+
+    let iconOptionsHtml = '';
+    iconOptions.forEach(opt => {
+        iconOptionsHtml += `<option value="${opt.value}">${opt.label}</option>`;
+    });
+
     const form = `<h2>Novo Servico</h2>
         <form id="service-form">
             <div class="form-row">
                 <div class="form-group">
                     <label>Nome *</label>
-                    <input type="text" id="service-name" required>
+                    <input type="text" id="service-name" placeholder="Ex: Internet Fibra" required>
                 </div>
                 <div class="form-group">
                     <label>Valor *</label>
-                    <input type="number" id="service-price" step="0.01" required>
+                    <input type="number" id="service-price" step="0.01" placeholder="Ex: 100.00" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Ícone *</label>
+                    <select id="service-icon" required>
+                        ${iconOptionsHtml}
+                    </select>
+                    <div style="margin-top: 8px;">
+                        <i id="icon-preview" class="fa-solid fa-circle-check" style="font-size: 2em; color: var(--primary-color);"></i>
+                    </div>
                 </div>
             </div>
             <div class="form-actions">
@@ -1215,11 +1247,18 @@ function showCreateServiceForm() {
 
     openModal(form);
 
+    // Icon preview
+    document.getElementById('service-icon').addEventListener('change', (e) => {
+        const preview = document.getElementById('icon-preview');
+        preview.className = e.target.value;
+    });
+
     document.getElementById('service-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         try {
             await apiCall('/services', 'POST', {
                 name: document.getElementById('service-name').value,
+                icon: document.getElementById('service-icon').value,
                 defaultPrice: parseFloat(document.getElementById('service-price').value)
             });
             closeModal();
@@ -1290,12 +1329,8 @@ async function loadCharges() {
                 if (c.services && c.services.length > 0) {
                     const icons = [];
                     c.services.forEach(s => {
-                        if (s && s.description) {
-                            if (s.description.toLowerCase().includes('garagem') || s.description.toLowerCase().includes('moto')) {
-                                icons.push('<i class="fa-solid fa-motorcycle service-icon"></i>');
-                            } else if (s.description.toLowerCase().includes('internet') || s.description.toLowerCase().includes('wifi')) {
-                                icons.push('<i class="fa-solid fa-wifi service-icon"></i>');
-                            }
+                        if (s && s.icon) {
+                            icons.push(`<i class="${s.icon} service-icon"></i>`);
                         }
                     });
                     if (icons.length > 0) {

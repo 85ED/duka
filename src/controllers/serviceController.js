@@ -12,13 +12,14 @@ exports.listServices = async (req, res) => {
 
 exports.createService = async (req, res) => {
     try {
-        const { name, defaultPrice } = req.body;
+        const { name, icon, defaultPrice } = req.body;
         if (!name || defaultPrice === undefined) {
             return res.status(400).json({ error: 'Nome e valor sao obrigatorios' });
         }
         const id = await Service.create({
             accountId: req.user.accountId,
             name,
+            icon,
             defaultPrice
         });
         res.status(201).json({ id, message: 'Servico criado com sucesso' });
@@ -34,11 +35,12 @@ exports.createService = async (req, res) => {
 exports.updateService = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, defaultPrice, status } = req.body;
+        const { name, icon, defaultPrice, status } = req.body;
         await Service.update({
             accountId: req.user.accountId,
             id,
             name,
+            icon,
             defaultPrice,
             status
         });

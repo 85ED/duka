@@ -177,9 +177,10 @@ class Charge {
                        THEN ROUND(c.total_amount + (c.total_amount * (COALESCE(cnt.late_fee_daily, 0.0333) / 100) * DATEDIFF(CURDATE(), c.due_date)), 2)
                        ELSE c.total_amount
                    END as valor_com_juros,
-                   -- Serviços adicionais (subconsulta)
-                   (SELECT JSON_ARRAYAGG(JSON_OBJECT('description', ci.description, 'amount', ci.amount, 'type', ci.type))
+                   -- Serviços adicionais (subconsulta com ícone)
+                   (SELECT JSON_ARRAYAGG(JSON_OBJECT('description', ci.description, 'amount', ci.amount, 'type', ci.type, 'icon', COALESCE(s.icon, 'fa-solid fa-circle-check')))
                     FROM charge_items ci
+                    LEFT JOIN services s ON s.name = ci.description AND s.account_id = c.account_id
                     WHERE ci.charge_id = c.id AND ci.type = 'service') as services
             FROM charges c
             JOIN contracts cnt ON c.contract_id = cnt.id
