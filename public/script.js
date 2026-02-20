@@ -128,12 +128,13 @@ function showToast(message, type = 'info') {
     toast.className = `toast ${type}`;
     toast.innerHTML = `
         <i class="fa-solid ${iconMap[type] || iconMap.info} toast-icon"></i>
-        <div>${String(message).replace(/\n/g, '<br>')}</div>
+        <div style="line-height: 1.5;">${String(message).replace(/\n/g, '<br>')}</div>
     `;
     container.appendChild(toast);
 
     setTimeout(() => {
-        toast.remove();
+        toast.style.animation = 'slideOut 0.3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
     }, 3500);
 }
 
@@ -1399,18 +1400,116 @@ async function loadCharges() {
 
 // Baixa rápida - 1 clique
 async function quickPay(chargeId) {
-    try {
-        const result = await apiCall(`/charges/${chargeId}/quick-pay`, 'POST');
+    try { 
+        // Buscar detalhes da cobrança primeiro
+        const charges = await apiCall('/charges');
+        const charge = charges.find(c => c.id === chargeId);
         
-        // Feedback visual
-        if (result.juros > 0) {
-            alert(`Pagamento registrado!\\n\\nValor original: ${formatCurrency(result.valorOriginal)}\\nDias de atraso: ${result.diasAtraso}\\nJuros: ${formatCurrency(result.juros)}\\nTotal pago: ${formatCurrency(result.valorPago)}`);
+        if (!charge) {
+            showToast('Cobrança não encontrada', 'error');
+            return;
         }
-        
-        loadCharges(); // Recarregar lista
+
+        const diasAtraso = parseInt(charge.dias_atraso) || 0;
+        const juros = parseFloat(charge.juros) || 0;
+        const valorOriginal = parseFloat(charge.total_amount);
+        const valorComJuros = parseFloat(charge.valor_com_juros) || valorOriginal;
+
+        // Se tiver atraso, abrir modal para confirmar pagamento
+        if (diasAtraso > 0 && juros > 0) {
+            showPaymentConfirmationModal({
+                chargeId,
+                valorOriginal,
+                diasAtraso,
+                juros,
+                valorComJuros,
+                tenantName: charge.tenant_name,
+                propertyAddress: charge.property_address
+            });
+        } else {
+            // Pagamento sem juros - processar direto
+            const result = await apiCall(`/charges/${chargeId}/quick-pay`, 'POST');
+            showToast('Pagamento registrado com sucesso!', 'success');
+            loadCharges();
+        }
     } catch (error) {
-        alert('Erro: ' + error.message);
+        showToast('Erro: ' + error.message, 'error');
     }
+}
+
+function showPaymentConfirmationModal({ chargeId, valorOriginal, diasAtraso, juros, valorComJuros, tenantName, propertyAddress }) {
+    const form = `<h2>💵 Confirmar Pagamento</h2>
+        <div style="background: var(--light-bg); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+            <p style="margin: 0 0 4px 0; color: var(--text-secondary); font-size: 13px;">Inquilino</p>
+            <p style="margin: 0 0 12px 0; font-weight: 600;">${tenantName}</p>
+            <p style="margin: 0 0 4px 0; color: var(--text-secondary); font-size: 13px;">Unidade</p>
+            <p style="margin: 0; font-weight: 600;">${propertyAddress}</p>
+        </div>
+        
+        <div style="background: #fff3cd; border-left: 4px solid var(--warning-color); padding: 14px; border-radius: 6px; margin-bottom: 20px;">
+            <p style="margin: 0; font-size: 14px; color: #856404;">
+                <i class="fa-solid fa-triangle-exclamation" style="margin-right: 8px;"></i>
+                <strong>Cobrança vencida há ${diasAtraso} dia${diasAtraso > 1 ? 's' : ''}</strong>
+            </p>
+        </div>
+
+        <div style="background: var(--light-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                <span style="color: var(--text-secondary);">Valor original:</span>
+                <strong>${formatCurrency(valorOriginal)}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                <span style="color: var(--danger-color);">
+                    <i class="fa-solid fa-plus" style="font-size: 10px;"></i> Juros (${diasAtraso} dia${diasAtraso > 1 ? 's' : ''}):  
+                </span>
+                <strong style="color: var(--danger-color);">+${formatCurrency(juros)}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 18px;">
+                <strong>Valor a pagar:</strong>
+                <strong style="color: var(--primary-color);">${formatCurrency(valorComJuros)}</strong>
+            </div>
+        </div>
+
+        <form id="payment-form">
+            <div class="form-group">
+                <label>Valor efetivamente pago (R$) *</label>
+                <input type="number" id="payment-amount" step="0.01" value="${valorComJuros.toFixed(2)}" required 
+                       style="font-size: 18px; font-weight: 600; color: var(--primary-color);">
+                <small style="color: var(--text-secondary); margin-top: 6px; display: block;">
+                    Altere se o valor pago foi diferente do calculado
+                </small>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-check"></i> Confirmar Pagamento
+                </button>
+            </div>
+        </form>`;
+
+    openModal(form);
+
+    document.getElementById('payment-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const valorPago = parseFloat(document.getElementById('payment-amount').value);
+        
+        try {
+            await apiCall(`/charges/${chargeId}/quick-pay`, 'POST', { amountPaid: valorPago });
+            closeModal();
+            
+            // Calcular diferença para exibir no toast
+            const diferencaJuros = valorPago - valorOriginal;
+            
+            showToast(
+                `Pagamento registrado!\n\nValor original: ${formatCurrency(valorOriginal)}\nJuros/Diferença: ${formatCurrency(diferencaJuros)}\nTotal pago: ${formatCurrency(valorPago)}`, 
+                'success'
+            );
+            loadCharges();
+        } catch (error) {
+            showToast('Erro ao registrar pagamento: ' + error.message, 'error');
+        }
+    });
 }
 
 async function voidCharge(chargeId) {
