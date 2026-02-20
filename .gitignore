@@ -10,9 +10,14 @@ package-lock.json
 .env.local
 .env.*.local
 
-# Documentation (ignorar todos os arquivos markdown)
-*.md
-*.MD
+# Documentation (ignorar arquivos de documentação interna, exceto README)
+API.md
+ARQUITETURA_SAAS.md
+ARQUITETURA_TECNICA_v4.md
+GUIA_USO.md
+REGRAS_DE_NEGOCIO_FINANCEIRAS.md
+RESUMO.md
+SETUP.md
 
 # Logs
 logs/
