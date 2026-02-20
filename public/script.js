@@ -1305,12 +1305,31 @@ async function loadServices() {
                     <td data-label="Valor">${formatCurrency(s.default_price)}</td>
                     <td data-label="Status">${statusLabel}</td>
                     <td data-label="Ações" class="td-actions">
-                        <button class="btn btn-small btn-secondary" onclick="updateServiceStatus(${s.id}, '${nextStatus}')">${actionLabel}</button>
-                        <button class="btn btn-small btn-primary" onclick="editServiceById(${s.id})">Editar</button>
+                        <button class="btn btn-small btn-secondary service-toggle-btn" data-service-id="${s.id}" data-new-status="${nextStatus}">${actionLabel}</button>
+                        <button class="btn btn-small btn-primary service-edit-btn" data-service-id="${s.id}">Editar</button>
                     </td>
                 </tr>`;
             });
             html += '</tbody></table>';
+            
+            // Adicionar event listeners após renderizar
+            setTimeout(() => {
+                document.querySelectorAll('.service-toggle-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const serviceId = this.dataset.serviceId;
+                        const newStatus = this.dataset.newStatus;
+                        updateServiceStatus(parseInt(serviceId), newStatus);
+                    });
+                });
+                document.querySelectorAll('.service-edit-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const serviceId = this.dataset.serviceId;
+                        editServiceById(parseInt(serviceId));
+                    });
+                });
+            }, 0);
         }
 
         html += '</div></div>';
