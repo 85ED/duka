@@ -1911,8 +1911,11 @@ async function loadPartners() {
 
 async function showPartnerShareForm() {
     const allUsers = await apiCall('/users');
-    // Filter out current user only (any other user can become a partner)
-    const availableUsers = allUsers.filter(u => u.id !== currentUser.id);
+    // Permitir que o usuário atual também seja um sócio
+    const availableUsers = allUsers.filter(u => {
+        // Verificar se o usuário já é um sócio
+        return true; // Mostrar todos os usuários
+    });
 
     let form = `<h2>Adicionar Sócio e Definir Participação</h2>
         <p style="color: var(--text-secondary); margin-bottom: 20px;">Selecione um usuário existente e defina sua porcentagem de participação nos lucros.</p>
@@ -1923,7 +1926,8 @@ async function showPartnerShareForm() {
                     <select id="share-partner-id" required>
                         <option value="">Escolha um usuário...</option>`;
     availableUsers.forEach(u => {
-        form += `<option value="${u.id}">${u.name} (${u.email}) - ${u.role === 'client_admin' ? 'Admin' : 'Membro'}</option>`;
+        const label = u.id === currentUser.id ? `${u.name} (${u.email}) - Admin (você)` : `${u.name} (${u.email}) - ${u.role === 'client_admin' ? 'Admin' : 'Membro'}`;
+        form += `<option value="${u.id}">${label}</option>`;
     });
     form += `</select>
                 </div>
@@ -1944,9 +1948,18 @@ async function showPartnerShareForm() {
     document.getElementById('partner-share-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         try {
+            const partnerUserId = parseInt(document.getElementById('share-partner-id').value);
+            const percentage = parseFloat(document.getElementById('share-percentage').value);
+            
+            if (partnerUserId === currentUser.id && percentage !== 50) {
+                // Aviso se adicionando a si mesmo com percentual diferente
+                const confirm = window.confirm(`Você está adicionando a si mesmo como sócio com ${percentage}% de participação. Deseja continuar?`);
+                if (!confirm) return;
+            }
+            
             await apiCall('/users/partner-shares', 'POST', {
-                partnerUserId: parseInt(document.getElementById('share-partner-id').value),
-                percentage: parseFloat(document.getElementById('share-percentage').value)
+                partnerUserId,
+                percentage
             });
             closeModal();
             loadPartners();
