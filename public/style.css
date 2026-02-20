@@ -1127,15 +1127,49 @@ a {
 }
 
 /* ===== DESPESAS - KPI E GRÁFICO ===== */
+/* Remove o card externo branco que está causando o problema */
+.card:has(.expense-top-widgets) {
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Ajusta o container principal */
 .expense-top-widgets {
-    max-width: 720px;
+    background: transparent;
+    padding: 0;
+    margin-bottom: 20px;
+    display: block;
+    width: fit-content;
+}
+
+/* Mantém o row com flex e gap */
+.expense-summary-row {
+    display: flex;
+    gap: 16px;
+    align-items: stretch;
+    flex-wrap: wrap;
+}
+
+/* Cards internos com tamanhos fixos pequenos */
+.expense-kpi-card {
+    flex: 0 0 160px;
+    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+    border-radius: 12px;
+    padding: 12px;
+    color: white;
+}
+
+.expense-chart-card {
+    flex: 0 0 160px;
     background: white;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    padding: 16px;
-    margin-bottom: 20px;
-    align-self: flex-start;
-    border: 2px solid var(--primary-color);
+    padding: 12px;
+    border: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 /* prevent flex container at root stretching content */
@@ -1155,54 +1189,7 @@ a {
     margin-bottom: 0;
 }
 
-.expense-summary-row {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 20px;
-    align-items: stretch;
-    max-width: 720px;
-}
 
-.expense-kpi-card {
-    flex: 0 0 320px;
-    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-    border-radius: 12px;
-    padding: 16px 20px;
-    color: white;
-    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.expense-kpi-card .kpi-label {
-    font-size: 12px;
-    opacity: 0.9;
-    margin-bottom: 6px;
-}
-
-.expense-kpi-card .kpi-value {
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
-
-.expense-kpi-card .kpi-count {
-    font-size: 12px;
-    opacity: 0.8;
-}
-
-.expense-chart-card {
-    flex: 0 0 360px;
-    background: white;
-    border-radius: 12px;
-    padding: 12px 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    border: 1px solid var(--gray-200);
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
 
 .expense-chart-card .chart-title {
     display: none;
