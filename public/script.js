@@ -1285,6 +1285,7 @@ async function loadServices() {
                     <td data-label="Status">${statusLabel}</td>
                     <td data-label="Ações" class="td-actions">
                         <button class="btn btn-small btn-secondary" onclick="updateServiceStatus(${s.id}, '${nextStatus}')">${actionLabel}</button>
+                        <button class="btn btn-small btn-primary" onclick="showEditServiceForm(${s.id}, '${s.name.replace(/'/g, '\\'')}', ${s.default_price}, '${icon}')">Editar</button>
                     </td>
                 </tr>`;
             });
@@ -1372,6 +1373,73 @@ function showCreateServiceForm() {
 }
 
 async function updateServiceStatus(id, status) {
+    // Modal para editar serviço
+    function showEditServiceForm(id, currentName, currentPrice, currentIcon) {
+        const iconOptions = [
+            { value: 'fa-solid fa-wifi', label: 'Wi-Fi / Internet' },
+            { value: 'fa-solid fa-motorcycle', label: 'Garagem / Moto' },
+            { value: 'fa-solid fa-car', label: 'Garagem / Carro' },
+            { value: 'fa-solid fa-water', label: 'Água' },
+            { value: 'fa-solid fa-lightbulb', label: 'Energia' },
+            { value: 'fa-solid fa-fire', label: 'Gás' },
+            { value: 'fa-solid fa-building', label: 'Condomínio' },
+            { value: 'fa-solid fa-broom', label: 'Limpeza' },
+            { value: 'fa-solid fa-shield-halved', label: 'Seguro' },
+            { value: 'fa-solid fa-tv', label: 'TV / Streaming' },
+            { value: 'fa-solid fa-circle-check', label: 'Padrão' }
+        ];
+        let iconOptionsHtml = '';
+        iconOptions.forEach(opt => {
+            iconOptionsHtml += `<option value="${opt.value}" ${currentIcon === opt.value ? 'selected' : ''}>${opt.label}</option>`;
+        });
+        const form = `<h2>Editar Serviço</h2>
+            <form id="edit-service-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nome *</label>
+                        <input type="text" id="edit-service-name" value="${currentName}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Valor *</label>
+                        <input type="number" id="edit-service-price" step="0.01" value="${currentPrice}" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Ícone *</label>
+                        <select id="edit-service-icon" required>
+                            ${iconOptionsHtml}
+                        </select>
+                        <div style="margin-top: 8px;">
+                            <i id="edit-icon-preview" class="${currentIcon}" style="font-size: 2em; color: var(--primary-color);"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" data-modal-cancel>Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>`;
+        openModal(form);
+        document.getElementById('edit-service-icon').addEventListener('change', (e) => {
+            const preview = document.getElementById('edit-icon-preview');
+            preview.className = e.target.value;
+        });
+        document.getElementById('edit-service-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                await apiCall(`/services/${id}`, 'PUT', {
+                    name: document.getElementById('edit-service-name').value,
+                    icon: document.getElementById('edit-service-icon').value,
+                    defaultPrice: parseFloat(document.getElementById('edit-service-price').value)
+                });
+                closeModal();
+                loadServices();
+            } catch (error) {
+                alert('Erro: ' + error.message);
+            }
+        });
+    }
     try {
         await apiCall(`/services/${id}`, 'PUT', { status });
         loadServices();
