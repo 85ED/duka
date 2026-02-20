@@ -347,6 +347,8 @@ function showCreateClientForm() {
 }
 
 // Ver detalhes do cliente
+let currentClientData = { id: null, users: [] }; // Contexto global para o cliente atual
+
 async function viewClient(id) {
     try {
         const client = await apiCall(`/admin/clients/${id}`);
@@ -355,6 +357,8 @@ async function viewClient(id) {
         let usersHtml = '<p>Carregando usuários...</p>';
         try {
             const users = await apiCall(`/admin/clients/${id}/users`);
+            currentClientData = { id: id, users: users }; // Armazenar contexto
+            
             if (users.length === 0) {
                 usersHtml = '<p style="color: var(--text-secondary);">Nenhum usuário cadastrado</p>';
             } else {
@@ -366,12 +370,34 @@ async function viewClient(id) {
                         <td data-label="Email">${u.email}</td>
                         <td data-label="Tipo"><span class="badge badge-${u.role === 'client_admin' ? 'active' : 'pending'}">${roleLabel}</span></td>
                         <td data-label="Ações" class="td-actions">
-                            <button class="btn btn-small btn-primary" onclick="showEditUserForm(${u.id}, '${u.name}', '${u.email}', ${id})">Editar</button>
-                            <button class="btn btn-small btn-secondary" onclick="resetUserPassword(${u.id}, '${u.email}')">Senha</button>
+                            <button class="btn btn-small btn-primary client-user-edit-btn" data-user-id="${u.id}">Editar</button>
+                            <button class="btn btn-small btn-secondary client-user-password-btn" data-user-id="${u.id}" data-user-email="${u.email}">Senha</button>
                         </td>
                     </tr>`;
                 });
                 usersHtml += '</tbody></table>';
+                
+                // Adicionar event listeners após renderizar
+                setTimeout(() => {
+                    document.querySelectorAll('.client-user-edit-btn').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const userId = parseInt(this.dataset.userId);
+                            const user = currentClientData.users.find(u => u.id === userId);
+                            if (user) {
+                                showEditUserForm(user.id, user.name, user.email, currentClientData.id);
+                            }
+                        });
+                    });
+                    document.querySelectorAll('.client-user-password-btn').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const userId = parseInt(this.dataset.userId);
+                            const userEmail = this.dataset.userEmail;
+                            resetUserPassword(userId, userEmail);
+                        });
+                    });
+                }, 0);
             }
         } catch (e) {
             usersHtml = '<p style="color: red;">Erro ao carregar usuários</p>';
@@ -2277,11 +2303,21 @@ function loadPartners() {
     return showPartnerShareManagement();
 }
 // ===== USERS =====
+let allSystemUsers = []; // Global para armazenar usuários do sistema
+
+function editSystemUserById(userId) {
+    const user = allSystemUsers.find(u => u.id === userId);
+    if (user) {
+        showEditSystemUserForm(user.id, user.name, user.email, user.role);
+    }
+}
+
 async function loadUsers() {
     updatePageTitle('Usuários do Sistema');
 
     try {
         const users = await apiCall('/users');
+        allSystemUsers = users; // Armazenar globalmente
 
         let html = '<div class="card"><div class="card-header"><h2>Todos os Usuários</h2><small style="color: var(--text-secondary); font-weight: normal;">Quem tem acesso ao sistema. Crie contas para assistentes ou gerenciadores de imóveis.</small></div>';
         html += '<div class="card-body">';
@@ -2297,11 +2333,22 @@ async function loadUsers() {
                     <td data-label="E-mail">${u.email}</td>
                     <td data-label="Função">${role}</td>
                     <td data-label="Ações" class="td-actions">
-                        <button class="btn btn-small btn-secondary" onclick="showEditSystemUserForm(${u.id}, '${u.name.replace(/'/g, '\\'')}', '${u.email.replace(/'/g, '\\'')}', '${u.role}')">Editar</button>
+                        <button class="btn btn-small btn-secondary system-user-edit-btn" data-user-id="${u.id}">Editar</button>
                     </td>
                 </tr>`;
             });
             html += '</tbody></table>';
+            
+            // Adicionar event listeners após renderizar
+            setTimeout(() => {
+                document.querySelectorAll('.system-user-edit-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const userId = parseInt(this.dataset.userId);
+                        editSystemUserById(userId);
+                    });
+                });
+            }, 0);
         }
 
         html += '</div></div>';
