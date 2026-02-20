@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đuka - Gestão de Imóveis</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style-responsive.css?v=20260220_RESPONSIVE_TABLES">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -51,6 +51,9 @@
                 </li>
                 <li id="charges-menu" style="display:none;">
                     <a href="#" data-action="charges" class="nav-link"><i class="fa-solid fa-receipt" style="margin-right: 10px; width: 20px;"></i>Cobranças</a>
+                </li>
+                <li id="expenses-menu" style="display:none;">
+                    <a href="#" data-action="expenses" class="nav-link"><i class="fa-solid fa-money-bill-wave" style="margin-right: 10px; width: 20px;"></i>Despesas</a>
                 </li>
                 <li id="services-menu" style="display:none;">
                     <a href="#" data-action="services" class="nav-link"><i class="fa-solid fa-wrench" style="margin-right: 10px; width: 20px;"></i>Serviços</a>
@@ -104,7 +107,15 @@
         <main class="main-content">
             <div id="content" class="content-area"></div>
         </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <span>Đuka — Gestão de Imóveis © <span id="year">2026</span> Code85</span>
+        </footer>
     </div>
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
     <!-- Modal -->
     <div id="modal" class="modal hidden">
@@ -118,6 +129,6 @@
 
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=20260220_RESPONSIVE_TABLES"></script>
 </body>
 </html>

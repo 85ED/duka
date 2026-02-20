@@ -23,7 +23,7 @@ class Expense {
                    p.address as property_address,
                    u.name as paid_by_user_name
             FROM expenses e
-            JOIN properties p ON e.property_id = p.id
+            LEFT JOIN properties p ON e.property_id = p.id
             JOIN users u ON e.paid_by_user_id = u.id
             WHERE e.account_id = ?
         `;

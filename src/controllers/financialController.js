@@ -127,7 +127,7 @@ exports.voidCharge = async (req, res) => {
 exports.getDashboardSummary = async (req, res) => {
     try {
         const { year, month } = req.query;
-        const stats = await Dashboard.getSummary(req.user.accountId, { year, month });
+        const stats = await Dashboard.getSummary(req.user.accountId, { year, month }, req.user.id);
         res.json(stats);
     } catch (error) {
         console.error(error);

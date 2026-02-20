@@ -51,8 +51,8 @@ function showApp() {
         document.getElementById('dashboard-menu').style.display = 'block';
         document.getElementById('clients-menu').style.display = 'block';
         loadClients();
-    } else if (currentUser.role === 'client_admin') {
-        // Client Admin - menu completo do cliente
+    } else {
+        // Todos os outros roles: menu completo
         document.getElementById('dashboard-menu').style.display = 'block';
         document.getElementById('enterprises-menu').style.display = 'block';
         document.getElementById('units-menu').style.display = 'block';
@@ -60,18 +60,9 @@ function showApp() {
         document.getElementById('contracts-menu').style.display = 'block';
         document.getElementById('services-menu').style.display = 'block';
         document.getElementById('charges-menu').style.display = 'block';
+        document.getElementById('expenses-menu').style.display = 'block';
         document.getElementById('partners-menu').style.display = 'block';
         document.getElementById('users-menu').style.display = 'block';
-        loadDashboard();
-    } else if (currentUser.role === 'client_member') {
-        // Client Member (Sócio) - menu limitado
-        document.getElementById('dashboard-menu').style.display = 'block';
-        document.getElementById('enterprises-menu').style.display = 'block';
-        document.getElementById('units-menu').style.display = 'block';
-        document.getElementById('tenants-menu').style.display = 'block';
-        document.getElementById('contracts-menu').style.display = 'block';
-        document.getElementById('services-menu').style.display = 'block';
-        document.getElementById('charges-menu').style.display = 'block';
         loadDashboard();
     }
 }
@@ -151,7 +142,26 @@ function toastFromAlert(message) {
 window.alert = toastFromAlert;
 
 function toggleSidebar() {
-    document.querySelector('.sidebar').classList.toggle('active');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const isActive = sidebar.classList.toggle('active');
+    
+    if (overlay) {
+        if (isActive) {
+            overlay.classList.add('active');
+        } else {
+            overlay.classList.remove('active');
+        }
+    }
+}
+
+function closeSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    sidebar.classList.remove('active');
+    if (overlay) {
+        overlay.classList.remove('active');
+    }
 }
 
 function formatCurrency(value) {
@@ -214,11 +224,11 @@ async function loadClients() {
             clients.forEach(c => {
                 const created = new Date(c.created_at).toLocaleDateString('pt-BR');
                 html += `<tr>
-                    <td><strong>${c.name}</strong></td>
-                    <td>${created}</td>
-                    <td>${c.users_count}</td>
-                    <td>${c.properties_count}</td>
-                    <td>
+                    <td data-label="Cliente"><strong>${c.name}</strong></td>
+                    <td data-label="Criado em">${created}</td>
+                    <td data-label="Usuários">${c.users_count}</td>
+                    <td data-label="Propriedades">${c.properties_count}</td>
+                    <td data-label="Ações" class="td-actions">
                         <button class="btn btn-small btn-secondary" data-action="view-client" data-id="${c.id}">Ver</button>
                         <button class="btn btn-small btn-secondary" data-action="edit-client" data-id="${c.id}">Editar</button>
                         <button class="btn btn-small btn-danger" data-action="delete-client" data-id="${c.id}">Deletar</button>
@@ -313,10 +323,10 @@ async function viewClient(id) {
                 users.forEach(u => {
                     const roleLabel = u.role === 'client_admin' ? 'Admin' : 'Membro';
                     usersHtml += `<tr>
-                        <td>${u.name}</td>
-                        <td>${u.email}</td>
-                        <td><span class="badge badge-${u.role === 'client_admin' ? 'active' : 'pending'}">${roleLabel}</span></td>
-                        <td>
+                        <td data-label="Nome">${u.name}</td>
+                        <td data-label="Email">${u.email}</td>
+                        <td data-label="Tipo"><span class="badge badge-${u.role === 'client_admin' ? 'active' : 'pending'}">${roleLabel}</span></td>
+                        <td data-label="Ações" class="td-actions">
                             <button class="btn btn-small btn-primary" onclick="showEditUserForm(${u.id}, '${u.name}', '${u.email}', ${id})">Editar</button>
                             <button class="btn btn-small btn-secondary" onclick="resetUserPassword(${u.id}, '${u.email}')">Senha</button>
                         </td>
@@ -373,11 +383,11 @@ async function showContractServices(contractId) {
                     ? `<button class="btn btn-small btn-secondary" onclick="cancelContractService(${contractId}, ${cs.id})">Remover</button>`
                     : '-';
                 listHtml += `<tr>
-                    <td>${cs.service_name}</td>
-                    <td>${formatCurrency(valor)}</td>
-                    <td>${formatDate(cs.start_date)}</td>
-                    <td>${statusLabel}</td>
-                    <td>${cancelBtn}</td>
+                    <td data-label="Serviço">${cs.service_name}</td>
+                    <td data-label="Valor">${formatCurrency(valor)}</td>
+                    <td data-label="Início">${formatDate(cs.start_date)}</td>
+                    <td data-label="Status">${statusLabel}</td>
+                    <td data-label="Ações" class="td-actions">${cancelBtn}</td>
                 </tr>`;
             });
             listHtml += '</tbody></table>';
@@ -657,6 +667,28 @@ async function loadDashboard(selectedYear, selectedMonth) {
 
         let html = '<p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">Visao financeira do mes selecionado.</p>';
 
+        // Mostrar distribuição de lucro líquido
+        let lucroDistribuidoHtml = '';
+        if (stats.lucro_distribuido && stats.lucro_distribuido.length > 0) {
+            lucroDistribuidoHtml = '<div style="padding: 12px; background: var(--light-bg); border-radius: 8px;">';
+            stats.lucro_distribuido.forEach(dist => {
+                const pct = typeof dist.percentage === 'number' ? dist.percentage : parseFloat(dist.percentage) || 0;
+                const barWidth = Math.max(0, pct);
+                lucroDistribuidoHtml += `
+                    <div style="margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 13px;">
+                            <span style="font-weight: 500;">${dist.name}</span>
+                            <span>${pct.toFixed(1)}% (${formatCurrency(dist.amount)})</span>
+                        </div>
+                        <div style="height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden;">
+                            <div style="height: 100%; background: linear-gradient(90deg, #10b981, #059669); width: ${barWidth}%; transition: width 0.3s ease;"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            lucroDistribuidoHtml += '</div>';
+        }
+
         html += `
             <div class="dashboard-kpis">
                 <div class="kpi-row">
@@ -672,12 +704,12 @@ async function loadDashboard(selectedYear, selectedMonth) {
                         <div class="kpi-label">Despesas do mes</div>
                         <div class="kpi-value">${formatCurrency(stats.despesas_mes)}</div>
                     </div>
-                </div>
-                <div class="kpi-row">
                     <div class="kpi-card">
                         <div class="kpi-label">Resultado operacional</div>
                         <div class="kpi-value">${formatCurrency(stats.resultado_operacional)}</div>
                     </div>
+                </div>
+                <div class="kpi-row">
                     <div class="kpi-card">
                         <div class="kpi-label">Resultado de caixa</div>
                         <div class="kpi-value">${formatCurrency(stats.resultado_caixa)}</div>
@@ -692,6 +724,11 @@ async function loadDashboard(selectedYear, selectedMonth) {
                         <div class="kpi-value">${unidadeAdimplenteLabel}</div>
                         <div class="kpi-subtext">${stats.unidades_adimplentes.adimplentes}/${stats.unidades_adimplentes.total}</div>
                     </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Lucro Liquido do mes</div>
+                        <div class="kpi-value">${formatCurrency(stats.lucro_liquido_mes)}</div>
+                        ${lucroDistribuidoHtml}
+                    </div>
                 </div>
             </div>
         `;
@@ -701,10 +738,11 @@ async function loadDashboard(selectedYear, selectedMonth) {
 
         let receitaBars = '';
         receitaSeries.forEach(s => {
+            const intValue = Math.round(s.value);
             const height = Math.round((Math.abs(s.value) / maxReceita) * 100);
             const signClass = s.value < 0 ? 'bar-negative' : 'bar-positive';
             receitaBars += `
-                <div class="chart-bar">
+                <div class="chart-bar" data-month="${String(s.month).padStart(2, '0')}" data-value="${formatCurrency(intValue)}">
                     <div class="bar ${signClass}" style="height: ${height}%"></div>
                     <div class="bar-label">${String(s.month).padStart(2, '0')}</div>
                 </div>
@@ -732,14 +770,19 @@ async function loadDashboard(selectedYear, selectedMonth) {
             </div>
         `;
 
-        const despesasSeries = stats.despesas_mensal || [];
+        // Garante 12 barras (meses) mesmo se não houver dados para todos
+        const despesasSeries = Array.from({length: 12}, (_, i) => {
+            const found = (stats.despesas_mensal || []).find(s => Number(s.month) === i+1);
+            return { month: i+1, value: found ? found.value : 0 };
+        });
         const maxDespesas = Math.max(1, ...despesasSeries.map(s => s.value));
 
         let despesasBars = '';
         despesasSeries.forEach(s => {
+            const intValue = Math.round(s.value);
             const height = Math.round((s.value / maxDespesas) * 100);
             despesasBars += `
-                <div class="chart-bar">
+                <div class="chart-bar" data-month="${String(s.month).padStart(2, '0')}" data-value="${formatCurrency(intValue)}">
                     <div class="bar bar-neutral" style="height: ${height}%"></div>
                     <div class="bar-label">${String(s.month).padStart(2, '0')}</div>
                 </div>
@@ -755,6 +798,7 @@ async function loadDashboard(selectedYear, selectedMonth) {
                     <div class="chart" data-chart="despesas">
                         ${despesasBars}
                     </div>
+                    <div id="chart-tooltip" class="chart-tooltip"></div>
                 </div>
             </div>
         `;
@@ -763,11 +807,11 @@ async function loadDashboard(selectedYear, selectedMonth) {
         (stats.risco_inquilinos || []).forEach(r => {
             riscoRows += `
                 <tr>
-                    <td>${r.tenant_name}</td>
-                    <td style="text-align: right;">${formatCurrency(r.contract_value)}</td>
-                    <td style="text-align: right;">${formatCurrency(r.overdue_value)}</td>
-                    <td style="text-align: right;">${r.days_overdue}</td>
-                    <td style="text-align: right;">${r.impact_pct.toFixed(2)}%</td>
+                    <td data-label="Inquilino">${r.tenant_name}</td>
+                    <td data-label="Valor contrato">${formatCurrency(r.contract_value)}</td>
+                    <td data-label="Valor vencido">${formatCurrency(r.overdue_value)}</td>
+                    <td data-label="Dias atraso">${r.days_overdue}</td>
+                    <td data-label="Impacto">${r.impact_pct.toFixed(2)}%</td>
                 </tr>
             `;
         });
@@ -782,10 +826,10 @@ async function loadDashboard(selectedYear, selectedMonth) {
                         <thead>
                             <tr>
                                 <th>Inquilino</th>
-                                <th style="text-align: right;">Valor do contrato</th>
-                                <th style="text-align: right;">Valor vencido</th>
-                                <th style="text-align: right;">Dias em atraso</th>
-                                <th style="text-align: right;">Impacto</th>
+                                <th>Valor do contrato</th>
+                                <th>Valor vencido</th>
+                                <th>Dias em atraso</th>
+                                <th>Impacto</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -807,6 +851,43 @@ async function loadDashboard(selectedYear, selectedMonth) {
         };
         yearSelect.addEventListener('change', reload);
         monthSelect.addEventListener('change', reload);
+
+        // Adicionar tooltips aos gráficos
+        document.querySelectorAll('.chart-bar').forEach(bar => {
+            bar.addEventListener('mouseenter', function(e) {
+                const month = this.getAttribute('data-month');
+                const value = this.getAttribute('data-value');
+                if (month && value) {
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'chart-tooltip-active';
+                    tooltip.textContent = `Mês ${month}: ${value}`;
+                    tooltip.style.position = 'fixed';
+                    tooltip.style.background = '#2d3748';
+                    tooltip.style.color = 'white';
+                    tooltip.style.padding = '6px 12px';
+                    tooltip.style.borderRadius = '4px';
+                    tooltip.style.fontSize = '12px';
+                    tooltip.style.zIndex = '1000';
+                    tooltip.style.pointerEvents = 'none';
+                    document.body.appendChild(tooltip);
+                    
+                    const updatePosition = (e) => {
+                        tooltip.style.left = (e.clientX + 10) + 'px';
+                        tooltip.style.top = (e.clientY - 30) + 'px';
+                    };
+                    updatePosition(e);
+                    this.addEventListener('mousemove', updatePosition);
+                    this.tooltip = tooltip;
+                }
+            });
+            
+            bar.addEventListener('mouseleave', function() {
+                if (this.tooltip) {
+                    document.body.removeChild(this.tooltip);
+                    this.tooltip = null;
+                }
+            });
+        });
     } catch (error) {
         document.getElementById('content').innerHTML = `<div class="error-message show">${error.message}</div>`;
     }
@@ -828,7 +909,7 @@ async function loadProperties() {
         } else {
             html += '<table class="table"><thead><tr><th>Endereço</th><th>Descrição</th><th>Ações</th></tr></thead><tbody>';
             properties.forEach(p => {
-                html += `<tr><td>${p.address}</td><td>${p.description || '-'}</td><td>
+                html += `<tr><td data-label="Endereço">${p.address}</td><td data-label="Descrição">${p.description || '-'}</td><td data-label="Ações" class="td-actions">
                     <button class="btn btn-small btn-secondary" data-action="edit-property" data-id="${p.id}">Editar</button>
                 </td></tr>`;
             });
@@ -944,15 +1025,15 @@ async function loadContracts() {
                 }
                 
                 html += `<tr>
-                    <td><strong>${location}</strong></td>
-                    <td>${c.tenant_name}</td>
-                    <td>${formatCurrency(c.rent_amount)}</td>
-                    <td>${permanencia}${alertaReajuste}</td>
-                    <td>
+                    <td data-label="Local"><strong>${location}</strong></td>
+                    <td data-label="Inquilino">${c.tenant_name}</td>
+                    <td data-label="Valor">${formatCurrency(c.rent_amount)}</td>
+                    <td data-label="Permanência">${permanencia}${alertaReajuste}</td>
+                    <td data-label="Vigência">
                         ${formatDate(c.start_date)} até ${c.end_date ? formatDate(c.end_date) : '—'}
                         <br><small>${vigencia}</small>
                     </td>
-                    <td style="text-align: center;">
+                    <td data-label="Ações" class="td-actions">
                         ${c.contract_url ? `<a href="${c.contract_url}" target="_blank" class="btn btn-small btn-primary" style="text-decoration: none; display: inline-block;"><i class="fa-solid fa-file-pdf"></i> PDF</a>` : ''}
                         <button class="btn btn-small btn-secondary" onclick="showEditContractForm(${c.id})"><i class="fa-solid fa-pen"></i> Editar</button>
                         <button class="btn btn-small btn-secondary" onclick="showContractServices(${c.id})">Servicos</button>
@@ -1198,11 +1279,11 @@ async function loadServices() {
                 const nextStatus = s.status === 'active' ? 'inactive' : 'active';
                 const icon = s.icon || 'fa-solid fa-circle-check';
                 html += `<tr>
-                    <td><i class="${icon}" style="font-size: 1.2em; color: var(--primary-color);"></i></td>
-                    <td>${s.name}</td>
-                    <td>${formatCurrency(s.default_price)}</td>
-                    <td>${statusLabel}</td>
-                    <td>
+                    <td data-label="Ícone"><i class="${icon}" style="font-size: 1.2em; color: var(--primary-color);"></i></td>
+                    <td data-label="Nome">${s.name}</td>
+                    <td data-label="Valor">${formatCurrency(s.default_price)}</td>
+                    <td data-label="Status">${statusLabel}</td>
+                    <td data-label="Ações" class="td-actions">
                         <button class="btn btn-small btn-secondary" onclick="updateServiceStatus(${s.id}, '${nextStatus}')">${actionLabel}</button>
                     </td>
                 </tr>`;
@@ -1391,16 +1472,16 @@ async function loadCharges() {
                        <button class="btn btn-small btn-danger" onclick="voidCharge(${c.id})">Excluir</button>`;
 
                 html += `<tr class="${rowClass}">
-                    <td>${c.property_address || 'N/A'}</td>
-                    <td>${c.tenant_name}</td>
-                    <td>${formatCurrency(c.total_amount)}</td>
-                    <td>${servicosHtml}</td>
-                    <td>${formatDate(c.due_date)}</td>
-                    <td>${atrasoHtml}</td>
-                    <td>${jurosHtml}</td>
-                    <td>${totalHtml}</td>
-                    <td style="text-align: center;">${pagoHtml}</td>
-                    <td style="text-align: center;">${acoesHtml}</td>
+                    <td data-label="Unidade">${c.property_address || 'N/A'}</td>
+                    <td data-label="Inquilino">${c.tenant_name}</td>
+                    <td data-label="Valor">${formatCurrency(c.total_amount)}</td>
+                    <td data-label="Serviços">${servicosHtml}</td>
+                    <td data-label="Vencimento">${formatDate(c.due_date)}</td>
+                    <td data-label="Atraso">${atrasoHtml}</td>
+                    <td data-label="Juros">${jurosHtml}</td>
+                    <td data-label="Total c/ Juros">${totalHtml}</td>
+                    <td data-label="Pago?" style="text-align: center;">${pagoHtml}</td>
+                    <td data-label="Ações" class="td-actions" style="text-align: center;">${acoesHtml}</td>
                 </tr>`;
             });
             html += '</tbody></table>';
@@ -1780,32 +1861,118 @@ async function showChargeForm() {
 // ===== EXPENSES =====
 async function loadExpenses() {
     updatePageTitle('Despesas');
+    console.log('=== loadExpenses INICIADO ===[',new Date().toLocaleTimeString(), ']==');
 
     try {
-        const [expenses, properties] = await Promise.all([
-            apiCall('/expenses'),
-            apiCall('/properties')
-        ]);
+        console.log('Fazendo chamada API de despesas...');
+        const expenses = await apiCall('/expenses');
+        console.log('DESPESAS RECEBIDAS:', expenses ? expenses.length : 0);
+        
+        if (!expenses || !Array.isArray(expenses)) {
+            throw new Error('Resposta inválida da API de despesas');
+        }
 
-        let html = '<div class="card"><div class="card-header"><h2>Despesas</h2>';
-        html += '<button class="btn btn-primary btn-small" onclick="showExpenseForm()">+ Nova Despesa</button></div>';
+        let html = '<div class="card">';
+        html += '<div class="card-header">';
+        html += '<h2>Despesas (' + expenses.length + ' encontradas)</h2>';
+        html += '<button class="btn btn-primary btn-small" onclick="showExpenseForm()">+ Nova Despesa</button>';
+        html += '<select id="expense-status-filter" style="margin-left:16px; padding:6px 12px; border-radius:6px; border:1px solid #e2e8f0; font-size:13px;">';
+        html += '<option value="">Todas (' + expenses.length + ')</option>';
+        html += '<option value="pending">Pendentes (' + expenses.filter(e => e.status === 'pending').length + ')</option>';
+        html += '<option value="paid">Pagas (' + expenses.filter(e => e.status === 'paid').length + ')</option>';
+        html += '</select>';
+        html += '</div>';
         html += '<div class="card-body">';
 
         if (expenses.length === 0) {
-            html += '<p style="text-align: center; color: var(--text-secondary);">Nenhuma despesa</p>';
+            html += '<p style="text-align:center; color:var(--text-secondary);">Nenhuma despesa encontrada</p>';
         } else {
-            html += '<table class="table"><thead><tr><th>Propriedade</th><th>Descrição</th><th>Valor</th><th>Data</th><th>Status</th></tr></thead><tbody>';
-            expenses.forEach(ex => {
+            html += '<table class="table">';
+            html += '<thead><tr><th>Propriedade</th><th>Descrição</th><th>Valor</th><th>Data</th><th>Status</th><th>Ações</th></tr></thead>';
+            html += '<tbody>';
+            
+            expenses.forEach((ex, index) => {
+                console.log(`Despesa ${index + 1}:`, ex.description, ex.status);
                 const badge = `<span class="badge badge-${ex.status}">${ex.status}</span>`;
-                html += `<tr><td>${ex.property_address}</td><td>${ex.description}</td><td>${formatCurrency(ex.amount)}</td><td>${formatDate(ex.expense_date)}</td><td>${badge}</td></tr>`;
+                html += '<tr>';
+                html += '<td data-label="Propriedade">' + (ex.property_address || 'Despesa geral') + '</td>';
+                html += '<td data-label="Descrição">' + ex.description + '</td>';
+                html += '<td data-label="Valor">' + formatCurrency(ex.amount) + '</td>';
+                html += '<td data-label="Data">' + formatDate(ex.expense_date) + '</td>';
+                html += '<td data-label="Status">' + badge + '</td>';
+                html += '<td data-label="Ações" class="td-actions">';
+                if (ex.status === 'pending') {
+                    html += '<button class="btn btn-small btn-success" data-action="mark-expense-paid" data-id="' + ex.id + '">Baixar</button>';
+                }
+                html += '</td>';
+                html += '</tr>';
             });
+            
             html += '</tbody></table>';
         }
-
+        
         html += '</div></div>';
-        document.getElementById('content').innerHTML = html;
+        
+        console.log('Inserindo HTML no DOM...');
+        const contentElement = document.getElementById('content');
+        if (!contentElement) {
+            console.error('Elemento content não encontrado!');
+            return;
+        }
+        
+        contentElement.innerHTML = html;
+        console.log('HTML inserido com sucesso!');
+
+        // Configurar filtro
+        const filterElement = document.getElementById('expense-status-filter');
+        if (filterElement) {
+            console.log('Configurando filtro...');
+            filterElement.addEventListener('change', function() {
+                console.log('Filtro alterado para:', this.value);
+                filterExpenses(expenses, this.value);
+            });
+        }
+        
     } catch (error) {
-        document.getElementById('content').innerHTML = `<div class="error-message show">${error.message}</div>`;
+        console.error('ERRO em loadExpenses:', error);
+        document.getElementById('content').innerHTML = '<div class="error-message show">Erro: ' + error.message + '</div>';
+    }
+}
+
+function filterExpenses(allExpenses, status) {
+    console.log('Filtrando despesas por status:', status);
+    let filtered = status ? allExpenses.filter(e => e.status === status) : allExpenses;
+    console.log('Despesas filtradas:', filtered.length);
+    
+    let tableHtml = '<table class="table">';
+    tableHtml += '<thead><tr><th>Propriedade</th><th>Descrição</th><th>Valor</th><th>Data</th><th>Status</th><th>Ações</th></tr></thead>';
+    tableHtml += '<tbody>';
+    
+    if (filtered.length === 0) {
+        tableHtml += '<tr><td colspan="6" style="text-align:center; color:var(--text-secondary);">Nenhuma despesa</td></tr>';
+    } else {
+        filtered.forEach(ex => {
+            const badge = `<span class="badge badge-${ex.status}">${ex.status}</span>`;
+            tableHtml += '<tr>';
+            tableHtml += '<td data-label="Propriedade">' + (ex.property_address || 'Despesa geral') + '</td>';
+            tableHtml += '<td data-label="Descrição">' + ex.description + '</td>';
+            tableHtml += '<td data-label="Valor">' + formatCurrency(ex.amount) + '</td>';
+            tableHtml += '<td data-label="Data">' + formatDate(ex.expense_date) + '</td>';
+            tableHtml += '<td data-label="Status">' + badge + '</td>';
+            tableHtml += '<td data-label="Ações" class="td-actions">';
+            if (ex.status === 'pending') {
+                tableHtml += '<button class="btn btn-small btn-success" data-action="mark-expense-paid" data-id="' + ex.id + '">Baixar</button>';
+            }
+            tableHtml += '</td>';
+            tableHtml += '</tr>';
+        });
+    }
+    
+    tableHtml += '</tbody></table>';
+    
+    const cardBody = document.querySelector('.card-body');
+    if (cardBody) {
+        cardBody.innerHTML = tableHtml;
     }
 }
 
@@ -1816,9 +1983,9 @@ async function showExpenseForm() {
         <form id="expense-form">
             <div class="form-row">
                 <div class="form-group">
-                    <label>Propriedade *</label>
-                    <select id="exp-prop-id" required>
-                        <option value="">Selecione...</option>`;
+                    <label>Propriedade</label>
+                    <select id="exp-prop-id">
+                        <option value="">Despesa geral (sem propriedade)</option>`;
     properties.forEach(p => {
         form += `<option value="${p.id}">${p.address}</option>`;
     });
@@ -1829,10 +1996,12 @@ async function showExpenseForm() {
                     <select id="exp-category">
                         <option value="">Selecione...</option>
                         <option value="Água">Água</option>
+                        <option value="Luz">Luz</option>
                         <option value="Energia">Energia</option>
                         <option value="Internet">Internet</option>
                         <option value="Manutenção">Manutenção</option>
                         <option value="Limpeza">Limpeza</option>
+                        <option value="Condomínio">Condomínio</option>
                         <option value="Outro">Outro</option>
                     </select>
                 </div>
@@ -1864,13 +2033,14 @@ async function showExpenseForm() {
     document.getElementById('expense-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         try {
-            await apiCall('/expenses', 'POST', {
-                propertyId: parseInt(document.getElementById('exp-prop-id').value),
+            const data = {
+                property_id: document.getElementById('exp-prop-id').value || null,
+                category: document.getElementById('exp-category').value,
                 description: document.getElementById('exp-description').value,
                 amount: parseFloat(document.getElementById('exp-amount').value),
-                expenseDate: document.getElementById('exp-date').value,
-                category: document.getElementById('exp-category').value
-            });
+                expense_date: document.getElementById('exp-date').value
+            };
+            await apiCall('/expenses', 'POST', data);
             closeModal();
             loadExpenses();
         } catch (error) {
@@ -1879,10 +2049,7 @@ async function showExpenseForm() {
     });
 }
 
-// ===== PARTNERS (ADMIN ONLY) =====
-async function loadPartners() {
-    updatePageTitle('Sócios & Compartilhamento');
-
+async function showPartnerShareManagement() {
     try {
         const partners = await apiCall('/users/partners');
 
@@ -1895,7 +2062,7 @@ async function loadPartners() {
         } else {
             html += '<table class="table"><thead><tr><th>Nome</th><th>Percentual</th><th>Ações</th></tr></thead><tbody>';
             partners.forEach(p => {
-                html += `<tr><td>${p.partner_name}</td><td>${p.percentage}%</td><td>
+                html += `<tr><td data-label="Nome">${p.partner_name}</td><td data-label="Percentual">${p.percentage}%</td><td data-label="Ações" class="td-actions">
                     <button class="btn btn-small btn-secondary" onclick="editPartnerShare(${p.id}, ${p.percentage})">Editar</button>
                 </td></tr>`;
             });
@@ -1985,7 +2152,7 @@ async function loadUsers() {
             html += '<table class="table"><thead><tr><th>Nome</th><th>E-mail</th><th>Função</th></tr></thead><tbody>';
             users.forEach(u => {
                 const role = u.role === 'admin' ? 'Administrador' : 'Membro';
-                html += `<tr><td>${u.name}</td><td>${u.email}</td><td>${role}</td></tr>`;
+                html += `<tr><td data-label="Nome">${u.name}</td><td data-label="E-mail">${u.email}</td><td data-label="Função">${role}</td></tr>`;
             });
             html += '</tbody></table>';
         }
@@ -2015,11 +2182,11 @@ async function loadEnterprises() {
             enterprises.forEach(e => {
                 const occupancy = e.units_count > 0 ? `${e.occupied_count}/${e.units_count}` : '0/0';
                 html += `<tr>
-                    <td><strong>${e.name}</strong></td>
-                    <td>${e.address || '-'}</td>
-                    <td>${e.units_count}</td>
-                    <td>${occupancy}</td>
-                    <td>
+                    <td data-label="Nome"><strong>${e.name}</strong></td>
+                    <td data-label="Endereço">${e.address || '-'}</td>
+                    <td data-label="Unidades">${e.units_count}</td>
+                    <td data-label="Ocupação">${occupancy}</td>
+                    <td data-label="Ações" class="td-actions">
                         <button class="btn btn-small btn-secondary" data-action="view-enterprise" data-id="${e.id}">Ver Unidades</button>
                         <button class="btn btn-small btn-secondary" data-action="edit-enterprise" data-id="${e.id}">Editar</button>
                     </td>
@@ -2108,12 +2275,12 @@ async function loadUnits(enterpriseId = null) {
             units.forEach(u => {
                 const statusBadge = getUnitStatusBadge(u.unit_status);
                 html += `<tr>
-                    <td>${u.enterprise_name}</td>
-                    <td><strong>${u.identifier}</strong></td>
-                    <td>${statusBadge}</td>
-                    <td>${u.tenant_name || '-'}</td>
-                    <td>${u.rent_amount ? formatCurrency(u.rent_amount) : '-'}</td>
-                    <td>
+                    <td data-label="Empreendimento">${u.enterprise_name}</td>
+                    <td data-label="Unidade"><strong>${u.identifier}</strong></td>
+                    <td data-label="Status">${statusBadge}</td>
+                    <td data-label="Inquilino">${u.tenant_name || '-'}</td>
+                    <td data-label="Aluguel">${u.rent_amount ? formatCurrency(u.rent_amount) : '-'}</td>
+                    <td data-label="Ações" class="td-actions">
                         <button class="btn btn-small btn-secondary" data-action="edit-unit" data-id="${u.id}">Editar</button>
                     </td>
                 </tr>`;
@@ -2218,11 +2385,11 @@ async function loadTenants() {
             html += '<table class="table"><thead><tr><th>Nome</th><th>Documento</th><th>Email</th><th>Telefone</th><th>Ações</th></tr></thead><tbody>';
             tenants.forEach(t => {
                 html += `<tr>
-                    <td><strong>${t.name}</strong></td>
-                    <td>${t.document || '-'}</td>
-                    <td>${t.email || '-'}</td>
-                    <td>${t.phone || '-'}</td>
-                    <td>
+                    <td data-label="Nome"><strong>${t.name}</strong></td>
+                    <td data-label="Documento">${t.document || '-'}</td>
+                    <td data-label="Email">${t.email || '-'}</td>
+                    <td data-label="Telefone">${t.phone || '-'}</td>
+                    <td data-label="Ações" class="td-actions">
                         <button class="btn btn-small btn-secondary" data-action="edit-tenant" data-id="${t.id}">Editar</button>
                     </td>
                 </tr>`;
@@ -2238,6 +2405,7 @@ async function loadTenants() {
 }
 
 function showTenantForm(tenant = null) {
+
     const isEdit = tenant !== null;
     const form = `<h2>${isEdit ? 'Editar' : 'Novo'} Inquilino</h2>
         <form id="tenant-form">
@@ -2261,6 +2429,13 @@ function showTenantForm(tenant = null) {
                     <input type="text" id="tenant-phone" value="${tenant?.phone || ''}">
                 </div>
             </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Documento PDF (URL)</label>
+                    <input type="url" id="tenant-document-url" value="${tenant?.document_url || ''}" placeholder="https://...">
+                    ${tenant?.document_url ? `<a href="${tenant.document_url}" target="_blank" style="font-size:13px;">Ver PDF atual</a>` : ''}
+                </div>
+            </div>
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary" data-modal-cancel>Cancelar</button>
                 <button type="submit" class="btn btn-primary">Salvar</button>
@@ -2275,11 +2450,14 @@ function showTenantForm(tenant = null) {
                 name: document.getElementById('tenant-name').value,
                 document: document.getElementById('tenant-document').value,
                 email: document.getElementById('tenant-email').value,
-                phone: document.getElementById('tenant-phone').value
+                phone: document.getElementById('tenant-phone').value,
+                document_url: document.getElementById('tenant-document-url').value
             };
-            
-            // API ainda usa POST /tenants
-            await apiCall('/tenants', 'POST', data);
+            if (tenant && tenant.id) {
+                await apiCall(`/tenants/${tenant.id}`, 'PUT', data);
+            } else {
+                await apiCall('/tenants', 'POST', data);
+            }
             closeModal();
             loadTenants();
         } catch (error) {
@@ -2315,10 +2493,14 @@ function editPartnerShare(id, currentPercentage) {
 
 // ===== EVENT LISTENERS INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', () => {
+    // Setar ano do footer
+    document.getElementById('year').textContent = new Date().getFullYear();
+    
     // Auth links (removido signup)
     const toggleMenuBtn = document.getElementById('toggle-menu-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const modalCloseBtn = document.getElementById('modal-close-btn');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
 
     if (toggleMenuBtn) {
         toggleMenuBtn.addEventListener('click', toggleSidebar);
@@ -2332,12 +2514,20 @@ document.addEventListener('DOMContentLoaded', () => {
         modalCloseBtn.addEventListener('click', closeModal);
     }
 
+    // Fechar sidebar ao clicar no overlay
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', closeSidebar);
+    }
+
     // Navigation menu items
     const navLinks = document.querySelectorAll('.nav-link[data-action]');
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const action = link.getAttribute('data-action');
+            
+            // Fechar sidebar ao clicar em um link
+            closeSidebar();
             
             // Update active class
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
@@ -2398,7 +2588,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             // Tenants
             case 'add-tenant': showTenantForm(); break;
-            case 'edit-tenant': alert('Edição de inquilino em desenvolvimento'); break;
+            case 'edit-tenant':
+                apiCall(`/tenants/${id}`).then(t => showTenantForm(t));
+                break;
             // Properties (legacy)
             case 'add-property': showPropertyForm(); break;
             case 'edit-property': editProperty(parseInt(id)); break;
@@ -2421,6 +2613,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.hasAttribute('data-modal-cancel')) {
             e.preventDefault();
             closeModal();
+        }
+    });
+
+    // Handler para baixar despesa (marcar como paga)
+    document.addEventListener('click', async (e) => {
+        const btn = e.target.closest('button[data-action="mark-expense-paid"]');
+        if (!btn) return;
+        console.log('Botão baixar despesa clicado', btn.getAttribute('data-id'));
+        const id = btn.getAttribute('data-id');
+        try {
+            await apiCall(`/expenses/${id}/status`, 'PUT', { status: 'paid' });
+            loadExpenses();
+        } catch (error) {
+            alert('Erro ao baixar despesa: ' + error.message);
         }
     });
 

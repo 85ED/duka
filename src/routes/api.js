@@ -60,8 +60,13 @@ router.delete('/units/:id', unitController.deleteUnit);
 // Properties & Tenants (mantido para compatibilidade)
 router.post('/properties', propertyController.createProperty);
 router.get('/properties', propertyController.listProperties);
-router.post('/tenants', propertyController.createTenant);
-router.get('/tenants', propertyController.listTenants);
+	router.post('/tenants', propertyController.createTenant);
+	router.get('/tenants', propertyController.listTenants);
+
+	// Novo CRUD de inquilinos (com PDF)
+	const tenantController = require('../controllers/tenantController');
+	router.put('/tenants/:id', tenantController.update);
+	router.get('/tenants/:id', tenantController.findById);
 
 // Contracts
 router.post('/contracts', contractController.createContract);

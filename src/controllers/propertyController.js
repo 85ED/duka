@@ -30,13 +30,14 @@ exports.listProperties = async (req, res) => {
 // Tenant Controller
 exports.createTenant = async (req, res) => {
     try {
-        const { name, document, email, phone } = req.body;
+        const { name, document, email, phone, document_url } = req.body;
         const id = await Tenant.create({
             accountId: req.user.accountId,
             name,
             document,
             email,
-            phone
+            phone,
+            document_url
         });
         res.status(201).json({ id, message: 'Tenant created' });
     } catch (error) {

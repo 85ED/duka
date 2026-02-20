@@ -15,7 +15,7 @@ function getMonthRange(year, month) {
 }
 
 class Dashboard {
-    static async getSummary(accountId, { year, month } = {}) {
+    static async getSummary(accountId, { year, month } = {}, userId = null) {
         const now = new Date();
         const selectedYear = year ? parseInt(year, 10) : now.getUTCFullYear();
         const selectedMonth = month ? parseInt(month, 10) : now.getUTCMonth() + 1;
@@ -71,7 +71,6 @@ class Dashboard {
                 `SELECT COALESCE(SUM(amount), 0) as total
                  FROM expenses
                  WHERE account_id = ?
-                   AND status = 'paid'
                    AND expense_date >= ?
                    AND expense_date <= ?`,
                 [accountId, monthStartStr, monthEndStr]
@@ -190,7 +189,7 @@ class Dashboard {
             const [expensesYearRows] = await connection.execute(
                 `SELECT DATE_FORMAT(expense_date, '%m') as m, COALESCE(SUM(amount), 0) as total
                  FROM expenses
-                 WHERE account_id = ? AND status = 'paid'
+                 WHERE account_id = ?
                    AND expense_date >= ? AND expense_date <= ?
                  GROUP BY DATE_FORMAT(expense_date, '%m')`,
                 [accountId, yearStart, yearEnd]
@@ -212,6 +211,51 @@ class Dashboard {
 
             const resultadoOperacional = rules.calcResultadoOperacional(faturamentoMes, despesasMes);
             const resultadoCaixa = rules.calcResultadoCaixa(recebidoMes, despesasMes);
+            
+            // Lucro líquido = faturamento - despesas
+            const lucroLiquido = rules.roundTo(faturamentoMes - despesasMes, 2);
+            
+            // Buscar sócios do usuário principal para distribuição de lucro
+            const [userPartners] = await connection.execute(
+                `SELECT ps.*, u.name as partner_name
+                 FROM partner_shares ps
+                 JOIN users u ON ps.partner_user_id = u.id
+                 WHERE ps.account_id = ? AND ps.primary_user_id = ? AND ps.status = 'active'
+                 ORDER BY ps.percentage DESC`,
+                [accountId, userId]
+            );
+            
+            // Calcular distribuição de lucro
+            let lucroDistribuido = [];
+            if (userPartners && userPartners.length > 0) {
+                // Incluir o usuário principal
+                const totalPercentagem = userPartners.reduce((sum, p) => sum + p.percentage, 0);
+                const percentagemPrincipal = 100 - totalPercentagem;
+                
+                if (percentagemPrincipal > 0) {
+                    lucroDistribuido.push({
+                        name: 'Você',
+                        percentage: percentagemPrincipal,
+                        amount: rules.roundTo((lucroLiquido * percentagemPrincipal) / 100, 2)
+                    });
+                }
+                
+                // Adicionar sócios
+                userPartners.forEach(p => {
+                    lucroDistribuido.push({
+                        name: p.partner_name,
+                        percentage: p.percentage,
+                        amount: rules.roundTo((lucroLiquido * p.percentage) / 100, 2)
+                    });
+                });
+            } else {
+                // Se não há sócios, tudo para o usuário principal
+                lucroDistribuido.push({
+                    name: 'Você',
+                    percentage: 100,
+                    amount: lucroLiquido
+                });
+            }
 
             return {
                 period: { year: selectedYear, month: selectedMonth },
@@ -220,6 +264,8 @@ class Dashboard {
                 despesas_mes: despesasMes,
                 resultado_operacional: resultadoOperacional,
                 resultado_caixa: resultadoCaixa,
+                lucro_liquido_mes: lucroLiquido,
+                lucro_distribuido: lucroDistribuido,
                 inadimplencia_mes_pct: inadimplenciaMes,
                 inadimplencia_acumulada: inadimplenciaAcumulada,
                 unidades_adimplentes_pct: unidadesAdimplentesPct,

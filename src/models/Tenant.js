@@ -1,12 +1,20 @@
 const db = require('../config/database');
 
+
 class Tenant {
-    static async create({ accountId, name, document, email, phone }) {
+    static async create({ accountId, name, document, email, phone, document_url }) {
         const [result] = await db.execute(
-            'INSERT INTO tenants (account_id, name, document, email, phone) VALUES (?, ?, ?, ?, ?)',
-            [accountId, name, document, email, phone]
+            'INSERT INTO tenants (account_id, name, document, email, phone, document_url) VALUES (?, ?, ?, ?, ?, ?)',
+            [accountId, name, document, email, phone, document_url]
         );
         return result.insertId;
+    }
+
+    static async update(id, accountId, { name, document, email, phone, document_url }) {
+        await db.execute(
+            'UPDATE tenants SET name = ?, document = ?, email = ?, phone = ?, document_url = ? WHERE id = ? AND account_id = ?',
+            [name, document, email, phone, document_url, id, accountId]
+        );
     }
 
     static async findAll(accountId) {
