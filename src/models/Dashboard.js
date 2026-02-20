@@ -215,6 +215,31 @@ class Dashboard {
             // Lucro líquido = faturamento - despesas
             const lucroLiquido = rules.roundTo(faturamentoMes - despesasMes, 2);
             
+            // Verificar se o usuário logado é um sócio (tem primary_user_id)
+            // Se for, usar o primary_user_id para buscar a distribuição de lucros
+            let primaryUserIdForShares = userId;
+            let currentUserName = 'Você';
+            
+            if (userId) {
+                const [currentUserRows] = await connection.execute(
+                    `SELECT id, name, primary_user_id FROM users WHERE id = ? AND account_id = ?`,
+                    [userId, accountId]
+                );
+                if (currentUserRows.length > 0 && currentUserRows[0].primary_user_id) {
+                    // Usuário logado é um sócio, usa o primary_user_id
+                    primaryUserIdForShares = currentUserRows[0].primary_user_id;
+                    
+                    // Buscar nome do usuário principal
+                    const [primaryUserRows] = await connection.execute(
+                        `SELECT name FROM users WHERE id = ?`,
+                        [primaryUserIdForShares]
+                    );
+                    if (primaryUserRows.length > 0) {
+                        currentUserName = primaryUserRows[0].name;
+                    }
+                }
+            }
+            
             // Buscar sócios do usuário principal para distribuição de lucro
             const [userPartners] = await connection.execute(
                 `SELECT ps.*, u.name as partner_name
@@ -222,7 +247,7 @@ class Dashboard {
                  JOIN users u ON ps.partner_user_id = u.id
                  WHERE ps.account_id = ? AND ps.primary_user_id = ? AND ps.status = 'active'
                  ORDER BY ps.percentage DESC`,
-                [accountId, userId]
+                [accountId, primaryUserIdForShares]
             );
             
             // Calcular distribuição de lucro
@@ -234,7 +259,7 @@ class Dashboard {
                 
                 if (percentagemPrincipal > 0) {
                     lucroDistribuido.push({
-                        name: 'Você',
+                        name: currentUserName,
                         percentage: percentagemPrincipal,
                         amount: rules.roundTo((lucroLiquido * percentagemPrincipal) / 100, 2)
                     });
@@ -251,7 +276,7 @@ class Dashboard {
             } else {
                 // Se não há sócios, tudo para o usuário principal
                 lucroDistribuido.push({
-                    name: 'Você',
+                    name: currentUserName,
                     percentage: 100,
                     amount: lucroLiquido
                 });
