@@ -10,22 +10,33 @@ document.getElementById('login-form')?.addEventListener('submit', async (e) => {
     const password = document.getElementById('login-password').value;
 
     try {
+        console.log(`[LOGIN] Enviando credenciais para: ${email}`);
         const res = await fetch(`${API_BASE}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
         });
 
+        console.log(`[LOGIN] Response status: ${res.status}`);
         const data = await res.json();
+        console.log(`[LOGIN] Response data:`, data);
+        
         if (!res.ok) throw new Error(data.error);
 
         token = data.token;
         currentUser = data.user;
+        console.log(`[LOGIN] Token salvo:`, token ? 'SIM' : 'NÃO');
+        console.log(`[LOGIN] CurrentUser:`, currentUser);
+        
         localStorage.setItem('token', token);
         localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        
+        console.log(`[LOGIN] LocalStorage - Token:`, localStorage.getItem('token') ? 'SALVO' : 'NÃO SALVO');
+        console.log(`[LOGIN] LocalStorage - CurrentUser:`, localStorage.getItem('currentUser') ? 'SALVO' : 'NÃO SALVO');
 
         showApp();
     } catch (error) {
+        console.error(`[LOGIN ERROR]`, error);
         showError('login-error', error.message);
     }
 });
@@ -1258,11 +1269,21 @@ async function renovarContrato(contractId) {
 }
 
 // ===== SERVICES =====
+let allServices = []; // Global para armazenar serviços
+
+function editServiceById(serviceId) {
+    const service = allServices.find(s => s.id === serviceId);
+    if (service) {
+        showEditServiceForm(service.id, service.name, service.default_price, service.icon || 'fa-solid fa-circle-check');
+    }
+}
+
 async function loadServices() {
     updatePageTitle('Servicos');
 
     try {
         const services = await apiCall('/services');
+        allServices = services; // Armazenar globalmente
 
         let html = '<div class="card"><div class="card-header"><h2>Servicos</h2>';
         html += '<small style="color: var(--text-secondary); font-weight: normal;">Cadastre servicos extras como garagem e internet. Depois voce escolhe em qual inquilino usar.</small>';
@@ -1285,7 +1306,7 @@ async function loadServices() {
                     <td data-label="Status">${statusLabel}</td>
                     <td data-label="Ações" class="td-actions">
                         <button class="btn btn-small btn-secondary" onclick="updateServiceStatus(${s.id}, '${nextStatus}')">${actionLabel}</button>
-                        <button class="btn btn-small btn-primary" onclick="showEditServiceForm(${s.id}, '${s.name.replace(/'/g, '\\'')}', ${s.default_price}, '${icon}')">Editar</button>
+                        <button class="btn btn-small btn-primary" onclick="editServiceById(${s.id})">Editar</button>
                     </td>
                 </tr>`;
             });
