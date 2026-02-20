@@ -1,0 +1,240 @@
+const db = require('../config/database');
+const rules = require('../services/financialRules');
+
+function formatDate(date) {
+    const y = date.getUTCFullYear();
+    const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(date.getUTCDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
+function getMonthRange(year, month) {
+    const start = new Date(Date.UTC(year, month - 1, 1));
+    const end = new Date(Date.UTC(year, month - 1, rules.daysInMonth(year, month)));
+    return { start, end };
+}
+
+class Dashboard {
+    static async getSummary(accountId, { year, month } = {}) {
+        const now = new Date();
+        const selectedYear = year ? parseInt(year, 10) : now.getUTCFullYear();
+        const selectedMonth = month ? parseInt(month, 10) : now.getUTCMonth() + 1;
+
+        const { start: monthStart, end: monthEnd } = getMonthRange(selectedYear, selectedMonth);
+        const monthStartStr = formatDate(monthStart);
+        const monthEndStr = formatDate(monthEnd);
+
+        const connection = await db.getConnection();
+        try {
+            const yearStart = `${selectedYear}-01-01`;
+            const yearEnd = `${selectedYear}-12-31`;
+
+            const [contracts] = await connection.execute(
+                `SELECT c.id, c.unit_id, c.property_id, c.tenant_id, c.start_date, c.end_date, c.rent_amount,
+                        t.name as tenant_name
+                 FROM contracts c
+                 JOIN tenants t ON c.tenant_id = t.id
+                 WHERE c.account_id = ?
+                   AND c.start_date <= ?
+                   AND (c.end_date IS NULL OR c.end_date >= ?)`
+                , [accountId, yearEnd, yearStart]
+            );
+
+            const contractForRules = contracts.map(c => ({
+                id: c.id,
+                unit_id: c.unit_id,
+                property_id: c.property_id,
+                tenant_id: c.tenant_id,
+                tenant_name: c.tenant_name,
+                startDate: c.start_date,
+                endDate: c.end_date,
+                monthlyValue: c.rent_amount
+            }));
+
+            const sameDayReplacementSet = rules.buildSameDayReplacementSet(contractForRules);
+
+            const faturamentoMesCalc = rules.calcFaturamentoMes(contractForRules, selectedYear, selectedMonth);
+            const faturamentoMes = faturamentoMesCalc.roundedTotal;
+
+            const [receivedRows] = await connection.execute(
+                `SELECT COALESCE(SUM(amount_paid), 0) as total
+                 FROM payments
+                 WHERE account_id = ?
+                   AND status = 'confirmed'
+                   AND payment_date >= ?
+                   AND payment_date <= ?`,
+                [accountId, monthStartStr, monthEndStr]
+            );
+            const recebidoMes = rules.centsToNumber(rules.parseToCents(receivedRows[0].total || 0));
+
+            const [expenseRows] = await connection.execute(
+                `SELECT COALESCE(SUM(amount), 0) as total
+                 FROM expenses
+                 WHERE account_id = ?
+                   AND status = 'paid'
+                   AND expense_date >= ?
+                   AND expense_date <= ?`,
+                [accountId, monthStartStr, monthEndStr]
+            );
+            const despesasMes = rules.centsToNumber(rules.parseToCents(expenseRows[0].total || 0));
+
+            const [chargesMonth] = await connection.execute(
+                `SELECT c.id, c.contract_id, c.total_amount, c.due_date,
+                        COALESCE(SUM(p.amount_paid), 0) as paid_by_end
+                 FROM charges c
+                 LEFT JOIN payments p
+                   ON p.charge_id = c.id
+                  AND p.status = 'confirmed'
+                  AND p.payment_date <= ?
+                 WHERE c.account_id = ?
+                   AND c.reference_month >= ?
+                   AND c.reference_month <= ?
+                   AND c.status != 'void'
+                 GROUP BY c.id`,
+                [monthEndStr, accountId, monthStartStr, monthEndStr]
+            );
+
+            let unpaidByEndTotalCents = 0n;
+            const unpaidByContract = new Map();
+
+            chargesMonth.forEach(ch => {
+                const total = rules.parseToCents(ch.total_amount || 0);
+                const paid = rules.parseToCents(ch.paid_by_end || 0);
+                const unpaid = total - paid > 0n ? total - paid : 0n;
+                if (unpaid > 0n) {
+                    unpaidByEndTotalCents += unpaid;
+                    const prev = unpaidByContract.get(ch.contract_id) || 0n;
+                    unpaidByContract.set(ch.contract_id, prev + unpaid);
+                }
+            });
+
+            const inadimplenciaMes = rules.calcInadimplenciaMes(
+                faturamentoMes,
+                rules.centsToNumber(unpaidByEndTotalCents)
+            );
+
+            const [overdueRows] = await connection.execute(
+                `SELECT c.id, c.total_amount, COALESCE(SUM(p.amount_paid), 0) as paid_total
+                 FROM charges c
+                 LEFT JOIN payments p
+                   ON p.charge_id = c.id
+                  AND p.status = 'confirmed'
+                 WHERE c.account_id = ?
+                   AND c.status != 'paid'
+                   AND c.status != 'void'
+                   AND c.due_date < CURDATE()
+                 GROUP BY c.id`,
+                [accountId]
+            );
+
+            const inadimplenciaAcumuladaCents = overdueRows.reduce((sum, r) => {
+                const total = rules.parseToCents(r.total_amount || 0);
+                const paid = rules.parseToCents(r.paid_total || 0);
+                const unpaid = total - paid > 0n ? total - paid : 0n;
+                return sum + unpaid;
+            }, 0n);
+            const inadimplenciaAcumulada = rules.centsToNumber(inadimplenciaAcumuladaCents);
+
+            const contractsActiveThisMonth = contractForRules.filter(c => {
+                return rules.getActiveDaysInMonth(c, selectedYear, selectedMonth, sameDayReplacementSet) > 0;
+            });
+
+            const contratosAtivosCount = contractsActiveThisMonth.length;
+            let contratosSemAtraso = 0;
+
+            contractsActiveThisMonth.forEach(c => {
+                const unpaidCents = unpaidByContract.get(c.id) || 0n;
+                if (unpaidCents === 0n) {
+                    contratosSemAtraso += 1;
+                }
+            });
+
+            const unidadesAdimplentesPct = rules.calcUnidadesAdimplentesMes(contratosSemAtraso, contratosAtivosCount);
+
+            const referenceDate = monthEnd;
+            const risco = contractsActiveThisMonth.map(c => {
+                const contractFaturamento = rules.calcContractBillingForMonth(
+                    c,
+                    selectedYear,
+                    selectedMonth,
+                    sameDayReplacementSet
+                ).roundedValue;
+                const impactoPct = faturamentoMes > 0
+                    ? rules.roundTo((contractFaturamento / faturamentoMes) * 100, 2)
+                    : 0;
+
+                const unpaidCents = unpaidByContract.get(c.id) || 0n;
+                let maxDiasAtraso = 0;
+                chargesMonth.forEach(ch => {
+                    if (ch.contract_id !== c.id) return;
+                    const total = rules.parseToCents(ch.total_amount || 0);
+                    const paid = rules.parseToCents(ch.paid_by_end || 0);
+                    const remaining = total - paid > 0n ? total - paid : 0n;
+                    if (remaining <= 0n) return;
+                    const due = new Date(ch.due_date);
+                    if (referenceDate > due) {
+                        const diff = Math.floor((referenceDate - due) / (24 * 60 * 60 * 1000));
+                        if (diff > maxDiasAtraso) maxDiasAtraso = diff;
+                    }
+                });
+
+                return {
+                    tenant_name: c.tenant_name,
+                    contract_value: rules.centsToNumber(rules.parseToCents(c.monthlyValue || 0)),
+                    overdue_value: rules.centsToNumber(unpaidCents),
+                    days_overdue: maxDiasAtraso,
+                    impact_pct: impactoPct
+                };
+            }).sort((a, b) => b.impact_pct - a.impact_pct);
+
+            const [expensesYearRows] = await connection.execute(
+                `SELECT DATE_FORMAT(expense_date, '%m') as m, COALESCE(SUM(amount), 0) as total
+                 FROM expenses
+                 WHERE account_id = ? AND status = 'paid'
+                   AND expense_date >= ? AND expense_date <= ?
+                 GROUP BY DATE_FORMAT(expense_date, '%m')`,
+                [accountId, yearStart, yearEnd]
+            );
+            const expensesByMonth = new Map();
+            expensesYearRows.forEach(r => expensesByMonth.set(parseInt(r.m, 10), rules.parseToCents(r.total || 0)));
+
+            const receitaLiquidaMensal = [];
+            const despesasMensal = [];
+
+            for (let m = 1; m <= 12; m += 1) {
+                // TODO: considerar snapshot historico de contratos por competencia
+                const faturamento = rules.calcFaturamentoMes(contractForRules, selectedYear, m).roundedTotal;
+                const despesas = rules.centsToNumber(expensesByMonth.get(m) || 0n);
+                const liquida = rules.roundTo(faturamento - despesas, 2);
+                receitaLiquidaMensal.push({ month: m, value: liquida });
+                despesasMensal.push({ month: m, value: despesas });
+            }
+
+            const resultadoOperacional = rules.calcResultadoOperacional(faturamentoMes, despesasMes);
+            const resultadoCaixa = rules.calcResultadoCaixa(recebidoMes, despesasMes);
+
+            return {
+                period: { year: selectedYear, month: selectedMonth },
+                faturamento_mes: faturamentoMes,
+                recebido_mes: recebidoMes,
+                despesas_mes: despesasMes,
+                resultado_operacional: resultadoOperacional,
+                resultado_caixa: resultadoCaixa,
+                inadimplencia_mes_pct: inadimplenciaMes,
+                inadimplencia_acumulada: inadimplenciaAcumulada,
+                unidades_adimplentes_pct: unidadesAdimplentesPct,
+                unidades_adimplentes: {
+                    adimplentes: contratosSemAtraso,
+                    total: contratosAtivosCount
+                },
+                receita_liquida_mensal: receitaLiquidaMensal,
+                despesas_mensal: despesasMensal,
+                risco_inquilinos: risco
+            };
+        } finally {
+            connection.release();
+        }
+    }
+}
+
+module.exports = Dashboard;
