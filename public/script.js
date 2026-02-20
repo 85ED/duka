@@ -2076,57 +2076,7 @@ async function loadExpenses() {
         html += '</div>';
         html += '<div class="card-body">';
 
-        // KPI + Gráfico de Pizza
-        const nomeMes = hoje.toLocaleString('pt-BR', { month: 'long' });
-        html += '<div class="expense-top-widgets"><div class="card"><div class="expense-summary-row">';
-        html += '<div class="expense-kpi-card">';
-        html += '<div class="kpi-label">Total de Despesas em ' + nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1) + '</div>';
-        html += '<div class="kpi-value">' + formatCurrency(totalMes) + '</div>';
-        html += '<div class="kpi-count">' + despesasMes.length + ' despesa(s)</div>';
-        html += '</div>';
-        
-        // Gráfico de Pizza SVG
-        html += '<div class="expense-chart-card">';
-        html += '<div class="chart-title">Por Categoria</div>';
-        if (dadosPizza.length > 0 && totalMes > 0) {
-            html += '<div class="pie-chart-container">';
-            html += '<svg viewBox="0 0 200 200" class="pie-chart-svg">';
-            
-            let acumulado = 0;
-            dadosPizza.forEach((d, idx) => {
-                const angulo = (d.valor / totalMes) * 360;
-                const startAngle = acumulado;
-                const endAngle = acumulado + angulo;
-                acumulado += angulo;
-                
-                // Calcular coordenadas do arco
-                const startRad = (startAngle - 90) * Math.PI / 180;
-                const endRad = (endAngle - 90) * Math.PI / 180;
-                const x1 = 100 + 80 * Math.cos(startRad);
-                const y1 = 100 + 80 * Math.sin(startRad);
-                const x2 = 100 + 80 * Math.cos(endRad);
-                const y2 = 100 + 80 * Math.sin(endRad);
-                const largeArc = angulo > 180 ? 1 : 0;
-                
-                const pathD = `M100,100 L${x1},${y1} A80,80 0 ${largeArc},1 ${x2},${y2} Z`;
-                html += `<path d="${pathD}" fill="${d.cor}" class="pie-slice" data-tooltip="${d.categoria}: ${formatCurrency(d.valor)} (${d.percentual}%)"></path>`;
-            });
-            
-            html += '</svg>';
-            html += '<div class="pie-tooltip" id="pie-tooltip"></div>';
-            html += '</div>';
-            
-            // Legenda
-            html += '<div class="pie-legend">';
-            dadosPizza.forEach(d => {
-                html += `<div class="legend-item"><span class="legend-color" style="background:${d.cor}"></span>${d.categoria}</div>`;
-            });
-            html += '</div>';
-        } else {
-            html += '<div class="no-chart-data">Sem despesas no mês</div>';
-        }
-        html += '</div>';
-        html += '</div></div></div>';
+        // omit KPI/chart entirely, render only table
 
         if (expenses.length === 0) {
             html += '<p style="text-align:center; color:var(--text-secondary);">Nenhuma despesa encontrada</p>';
