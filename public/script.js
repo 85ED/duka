@@ -2136,6 +2136,10 @@ async function showPartnerShareForm() {
     });
 }
 
+// Alias global para compatibilidade de navegação
+function loadPartners() {
+    return showPartnerShareManagement();
+}
 // ===== USERS =====
 async function loadUsers() {
     updatePageTitle('Usuários do Sistema');
