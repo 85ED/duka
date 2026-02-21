@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đuka - Gestão de Imóveis</title>
+    <link rel="stylesheet" href="style-responsive.css?v=20260220_RESPONSIVE_TABLES">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <!-- Login Section -->
+    <div id="login-section" class="auth-section active">
+        <div class="auth-container">
+            <div class="auth-card">
+                <h1>Đuka</h1>
+                <p class="subtitle">Plataforma SaaS de Gestão de Imóveis</p>
+                
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">E-mail</label>
+                        <input type="email" id="login-email" placeholder="seu@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Senha</label>
+                        <input type="password" id="login-password" placeholder="Sua senha" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Entrar</button>
+                    <div id="login-error" class="error-message"></div>
+                </form>
+                
+                <p class="auth-link" style="text-align: center; margin-top: 15px; color: #999; font-size: 13px;">
+                    Plataforma de gerenciamento de propriedades
+                </p>
+                    <div style="text-align: center; color: var(--primary-color); font-size: 12.5px; margin-top: 8px; letter-spacing: 0.5px; font-weight: 600;">
+                        CODE85
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="app-section" class="app-section">
+        <!-- Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Đuka</h2>
+                <button class="close-sidebar" onclick="toggleSidebar()" aria-label="Fechar menu">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <ul class="nav-menu">
+                <li id="dashboard-menu">
+                    <a href="#" data-action="dashboard" class="nav-link"><i class="fa-solid fa-chart-line" style="margin-right: 10px; width: 20px;"></i>Dashboard</a>
+                </li>
+                <li id="charges-menu" style="display:none;">
+                    <a href="#" data-action="charges" class="nav-link"><i class="fa-solid fa-receipt" style="margin-right: 10px; width: 20px;"></i>Cobranças</a>
+                </li>
+                <li id="expenses-menu" style="display:none;">
+                    <a href="#" data-action="expenses" class="nav-link"><i class="fa-solid fa-money-bill-wave" style="margin-right: 10px; width: 20px;"></i>Despesas</a>
+                </li>
+                <li id="services-menu" style="display:none;">
+                    <a href="#" data-action="services" class="nav-link"><i class="fa-solid fa-wrench" style="margin-right: 10px; width: 20px;"></i>Serviços</a>
+                </li>
+                <li id="tenants-menu" style="display:none;">
+                    <a href="#" data-action="tenants" class="nav-link"><i class="fa-solid fa-users" style="margin-right: 10px; width: 20px;"></i>Inquilinos</a>
+                </li>
+                <li id="contracts-menu" style="display:none;">
+                    <a href="#" data-action="contracts" class="nav-link"><i class="fa-solid fa-file-contract" style="margin-right: 10px; width: 20px;"></i>Contratos</a>
+                </li>
+                <li id="enterprises-menu" style="display:none;">
+                    <a href="#" data-action="enterprises" class="nav-link"><i class="fa-solid fa-building" style="margin-right: 10px; width: 20px;"></i>Empreendimentos</a>
+                </li>
+                <li id="units-menu" style="display:none;">
+                    <a href="#" data-action="units" class="nav-link"><i class="fa-solid fa-door-open" style="margin-right: 10px; width: 20px;"></i>Unidades</a>
+                </li>
+                <li id="expenses-menu" style="display:none;">
+                    <a href="#" data-action="expenses" class="nav-link"><i class="fa-solid fa-money-bill-wave" style="margin-right: 10px; width: 20px;"></i>Despesas</a>
+                </li>
+                <li id="users-menu" style="display:none;">
+                    <a href="#" data-action="users" class="nav-link"><i class="fa-solid fa-user-tie" style="margin-right: 10px; width: 20px;"></i>Usuários</a>
+                </li>
+                <li id="partners-menu" style="display:none;">
+                    <a href="#" data-action="partners" class="nav-link"><i class="fa-solid fa-handshake" style="margin-right: 10px; width: 20px;"></i>Sócios</a>
+                </li>
+                <li id="clients-menu" style="display:none;">
+                    <a href="#" data-action="clients" class="nav-link"><i class="fa-solid fa-sitemap" style="margin-right: 10px; width: 20px;"></i>Clientes (Admin)</a>
+                </li>
+                <li id="properties-menu" style="display:none;">
+                    <a href="#" data-action="properties" class="nav-link"><i class="fa-solid fa-archive" style="margin-right: 10px; width: 20px;"></i>Propriedades (Legado)</a>
+                </li>
+                <li>
+                    <a href="#" data-action="logout" class="nav-link"><i class="fa-solid fa-sign-out-alt" style="margin-right: 10px; width: 20px;"></i>Sair</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Header -->
+        <header class="top-bar">
+            <button class="menu-toggle" id="toggle-menu-btn" aria-label="Abrir menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <h1 id="page-title">Dashboard</h1>
+            <div class="user-info">
+                <span id="user-name">Usuário</span>
+                <button id="logout-btn" class="btn btn-small">Sair</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div id="content" class="content-area"></div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <span>Đuka — Gestão de Imóveis © <span id="year">2026</span> CODE85</span>
+        </footer>
+    </div>
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close-btn" aria-label="Fechar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="script.js?v=20260220_RESPONSIVE_TABLES"></script>
+</body>
+</html>

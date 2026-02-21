@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1e293b">
+    <meta property="og:title" content="Programa para controlar aluguel sem imobiliária | Đuka">
+    <meta property="og:description" content="Sistema simples para controlar aluguel próprio. Cadastre casas, inquilinos e pagamentos e acompanhe quem pagou ou atrasou. Ideal para dono de kitnet ou casa de aluguel.">
+    <meta property="og:image" content="https://duka.app.br/og-image.png">
+    <meta property="og:url" content="https://duka.app.br/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <title>Programa para controlar aluguel sem imobiliária | Đuka</title>
+    <meta name="description"
+    content="Sistema simples para controlar aluguel próprio. Cadastre casas, inquilinos e pagamentos e acompanhe quem pagou ou atrasou. Ideal para dono de kitnet ou casa de aluguel.">
+    <link rel="stylesheet" href="/assets/style.css">
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Đuka",
+    "inLanguage": "pt-BR",
+    "applicationCategory": "RealEstateApplication",
+    "operatingSystem": "Web",
+    "description": "Software para proprietário controlar aluguel sem imobiliária. Permite cadastrar casas, inquilinos, pagamentos e dividir aluguel com sócio.",
+    "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "BRL"
+    }
+}
+</script>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "Organization",
+ "name": "Đuka",
+ "url": "https://duka.app.br/",
+ "sameAs": [],
+ "inLanguage": "pt-BR"
+}
+</script>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "FAQPage",
+ "inLanguage": "pt-BR",
+ "mainEntity": [
+     {
+         "@type": "Question",
+         "name": "Como controlar aluguel sem imobiliária?",
+         "acceptedAnswer": {
+             "@type": "Answer",
+             "text": "Use um sistema para cadastrar imóveis, inquilinos e registrar pagamentos mês a mês."
+         }
+     },
+     {
+         "@type": "Question",
+         "name": "Preciso de imobiliária para administrar aluguel?",
+         "acceptedAnswer": {
+             "@type": "Answer",
+             "text": "Não. O proprietário pode administrar sozinho utilizando um software de controle de aluguel."
+         }
+     },
+     {
+         "@type": "Question",
+         "name": "Como saber quem pagou aluguel?",
+         "acceptedAnswer": {
+             "@type": "Answer",
+             "text": "O sistema registra pagamentos e mostra quem está em dia ou atrasado."
+         }
+     },
+     {
+         "@type": "Question",
+         "name": "Como dividir aluguel com sócio?",
+         "acceptedAnswer": {
+             "@type": "Answer",
+             "text": "É possível cadastrar sócios e definir porcentagens automaticamente."
+         }
+     }
+ ]
+}
+</script>
+<link rel="canonical" href="https://duka.app.br/">
+<meta name="robots" content="index, follow">
+</head>
+
+<body>
+    <div id="root">
+        <div class="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
+            <header class="header">
+  <div class="container">
+    <a href="/" class="logo" style="display:flex;align-items:center;gap:8px;">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
+<path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path>
+<path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path>
+<path d="M10 6h4"></path>
+<path d="M10 10h4"></path>
+<path d="M10 14h4"></path>
+<path d="M10 18h4"></path>
+</svg>
+<span>Đuka</span>
+</a>
+
+    <nav class="nav-desktop">
+      <a href="#sobre">Sobre</a>
+      <a href="#servicos">Serviços</a>
+      <a href="https://wa.me/5511972336835" target="_blank">Contato</a>
+      <a href="/login" class="btn">Entrar</a>
+    </nav>
+
+    <button id="menu-toggle" class="hamburger" aria-label="Abrir menu">
+      ☰
+    </button>
+  </div>
+</header>
+
+<div id="mobile-menu" class="mobile-menu">
+  <div class="mobile-content">
+    <button id="menu-close" class="close">✕</button>
+    <a href="#sobre">Sobre</a>
+    <a href="#servicos">Serviços</a>
+    <a href="https://wa.me/5511972336835" target="_blank">Contato</a>
+    <a href="/login" class="btn">Entrar</a>
+  </div>
+</div>
+            <main>
+                <section class="relative pt-32 pb-20 overflow-hidden reveal">
+                    <div class="max-w-7xl mx-auto px-4">
+                        <div class="relative w-full max-w-4xl mx-auto py-24">
+                            <div class="absolute inset-0"><svg width="100%" height="100%" viewBox="0 0 1200 600"
+                                    class="w-full h-full">
+                                    <title>KokonutUI</title>
+                                    <path d="M 950 90 
+                           C 1250 300, 1050 480, 600 520
+                           C 250 520, 150 480, 150 300
+                           C 150 120, 350 80, 600 80
+                           C 850 80, 950 180, 950 180" fill="none" stroke-width="12" stroke="currentColor"
+                                        stroke-linecap="round" stroke-linejoin="round"
+                                        class="text-white opacity-90" opacity="1" pathLength="1"
+                                        stroke-dashoffset="0px" stroke-dasharray="1px 1px"></path>
+                                </svg></div>
+                            <div class="relative text-center z-10 flex flex-col items-center justify-center">
+                                <h1 class="text-4xl md:text-6xl text-white tracking-tighter flex items-center gap-2"
+                                    style="opacity: 1; transform: none;">Controle seus aluguéis sem imobiliária</h1>
+                                <p class="text-xl text-white/90" style="opacity: 1;">Cadastre casas, inquilinos e pagamentos e saiba quem pagou ou atrasou no mês.</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8"
+                            style="opacity: 1; transform: none;">
+                            <a href="#sobre" class="bg-blue-500 text-white px-8 py-3 rounded-full hover:bg-blue-600 transition-colors flex items-center justify-center gap-2">Ver como funciona</a>
+                            <a href="https://wa.me/5511972336835" target="_blank" rel="noopener noreferrer" class="bg-blue-500 text-white px-8 py-3 rounded-full hover:bg-blue-600 transition-colors flex items-center justify-center gap-2">Falar no WhatsApp</a>
+                        </div>
+                    </div>
+                </section>
+                <section id="sobre" class="py-20 bg-gray-800/30 reveal" style="scroll-margin-top:120px;">
+                    <div class="max-w-7xl mx-auto px-4">
+                        <div class="text-center mb-16" style="opacity: 1; transform: none;">
+                            <div class="flex items-center justify-center gap-2 mb-4"><svg
+                                    xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" class="lucide lucide-award w-8 h-8 text-blue-500">
+                                    <circle cx="12" cy="8" r="6"></circle>
+                                    <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
+                                </svg>
+                                <h2 class="text-4xl font-bold">20 Anos de Experiência</h2>
+                            </div>
+                            <p class="text-xl text-gray-400 max-w-3xl mx-auto">Com mais de duas décadas de experiência
+                                em administração de imóveis, criamos uma ferramenta prática e segura para facilitar sua
+                                rotina — seja você síndico, proprietário ou gestor.</p>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-12 items-center">
+                            <div class="space-y-8" style="opacity: 1; transform: none;">
+                                <div class="bg-gray-700/30 p-6 rounded-lg">
+                                    <h3 class="text-2xl font-bold mb-4 flex items-center gap-2"><svg
+                                            xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round"
+                                            class="lucide lucide-settings w-6 h-6 text-blue-500">
+                                            <path
+                                                d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z">
+                                            </path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>Uso do Sistema</h3>
+                                    <p class="text-gray-400 mb-4">Ideal para quem quer autonomia com organização:</p>
+                                    <ul class="space-y-3">
+                                        <li class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg"
+                                                width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                class="lucide lucide-check-circle2 w-5 h-5 text-green-500">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <path d="m9 12 2 2 4-4"></path>
+                                            </svg><span>Controle de casas, aluguéis e despesas</span></li>
+                                        <li class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg"
+                                                width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                class="lucide lucide-check-circle2 w-5 h-5 text-green-500">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <path d="m9 12 2 2 4-4"></path>
+                                            </svg><span>Relatórios financeiros claros</span></li>
+                                        <li class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg"
+                                                width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                class="lucide lucide-check-circle2 w-5 h-5 text-green-500">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <path d="m9 12 2 2 4-4"></path>
+                                            </svg><span>Visão de performance do seu negócio</span></li>
+                                    </ul>
+                                </div>
+                                <div class="bg-gray-700/30 p-6 rounded-lg">
+                                    <h3 class="text-2xl font-bold mb-4 flex items-center gap-2"><svg
+                                            xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round"
+                                            class="lucide lucide-briefcase w-6 h-6 text-blue-500">
+                                            <rect width="20" height="14" x="2" y="7" rx="2" ry="2"></rect>
+                                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                                        </svg>Gestão Automatizada</h3>
+                                    <p class="text-gray-400 mb-4">Tudo feito pelo sistema, sem intervenção humana:</p>
+                                    <ul class="space-y-3">
+                                        <li class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg"
+                                                width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                class="lucide lucide-check-circle2 w-5 h-5 text-green-500">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <path d="m9 12 2 2 4-4"></path>
+                                            </svg><span>Gestão financeira automatizada</span></li>
+                                        <li class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg"
+                                                width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                class="lucide lucide-check-circle2 w-5 h-5 text-green-500">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <path d="m9 12 2 2 4-4"></path>
+                                            </svg><span>Relatórios automáticos</span></li>
+                                        <li class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg"
+                                                width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                class="lucide lucide-check-circle2 w-5 h-5 text-green-500">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <path d="m9 12 2 2 4-4"></path>
+                                            </svg><span>Organização de informações do locatário</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="relative" style="opacity: 1; transform: none;">
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg filter blur-xl">
+                                </div>
+                                <div class="relative bg-gray-800 p-8 rounded-lg border border-gray-700">
+                                    <h3 class="text-2xl font-bold mb-6 flex items-center gap-2"><svg
+                                            xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round"
+                                            class="lucide lucide-star w-6 h-6 text-yellow-500">
+                                            <polygon
+                                                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                                            </polygon>
+                                        </svg>Por que nos escolher?</h3>
+                                    <div class="space-y-6">
+                                        <div>
+                                            <h4 class="text-lg font-semibold mb-2">Tecnologia Avançada</h4>
+                                            <p class="text-gray-400">Sistema fácil de usar para quem aluga sem imobiliária</p>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-lg font-semibold mb-2">Experiência Comprovada</h4>
+                                            <p class="text-gray-400">Criado a partir de 20 anos de experiência real alugando casas</p>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-lg font-semibold mb-2">Transparência Total</h4>
+                                            <p class="text-gray-400">Acesso a relatórios detalhados e informações em
+                                                tempo real.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section id="servicos" class="py-20 bg-gray-800/50 reveal" style="scroll-margin-top:120px;">
+                    <div class="max-w-7xl mx-auto px-4">
+                        <div class="text-center mb-16" style="opacity: 1; transform: none;">
+                            <h2 class="text-4xl font-bold mb-4">Nossos Serviços</h2>
+                            <p class="text-gray-400 max-w-2xl mx-auto">Escolha a solução que melhor atende às suas
+                                necessidades</p>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <div class="bg-gray-700/50 rounded-2xl p-8 border border-gray-600 hover:border-blue-500 transition-colors"
+                                style="opacity: 1; transform: none;"><svg xmlns="http://www.w3.org/2000/svg" width="24"
+                                    height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round"
+                                    class="lucide lucide-settings w-12 h-12 text-blue-500 mb-6">
+                                    <path
+                                        d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z">
+                                    </path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <h3 class="text-2xl font-bold mb-4">Controle completo no sistema</h3>
+                                <p class="text-gray-400 mb-6">Gerencie seu negócio com autonomia e eficiência</p>
+                                <ul class="space-y-4">
+                                    <li class="flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg"
+                                            width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                            class="lucide lucide-check-circle2 w-5 h-5 text-green-500 flex-shrink-0">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <path d="m9 12 2 2 4-4"></path>
+                                        </svg><span>Controle de casas e unidades</span></li>
+                                    <li class="flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg"
+                                            width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                            class="lucide lucide-check-circle2 w-5 h-5 text-green-500 flex-shrink-0">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <path d="m9 12 2 2 4-4"></path>
+                                        </svg><span>Gestão de aluguéis</span></li>
+                                    <li class="flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg"
+                                            width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                            class="lucide lucide-check-circle2 w-5 h-5 text-green-500 flex-shrink-0">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <path d="m9 12 2 2 4-4"></path>
+                                        </svg><span>Controle financeiro completo</span></li>
+                                    <li class="flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg"
+                                            width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                            class="lucide lucide-check-circle2 w-5 h-5 text-green-500 flex-shrink-0">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <path d="m9 12 2 2 4-4"></path>
+                                        </svg><span>Relatórios detalhados</span></li>
+                                    <li class="flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg"
+                                            width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                            class="lucide lucide-check-circle2 w-5 h-5 text-green-500 flex-shrink-0">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <path d="m9 12 2 2 4-4"></path>
+                                        </svg><span>Dashboard intuitivo</span></li>
+                                </ul>
+                            </div>
+                            <div class="bg-gray-700/50 rounded-2xl p-8 border border-gray-600 hover:border-blue-500 transition-colors"
+                                style="opacity: 1; transform: none;"><svg xmlns="http://www.w3.org/2000/svg" width="24"
+                                    height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round"
+                                    class="lucide lucide-users-round w-12 h-12 text-blue-500 mb-6">
+                                    <path d="M18 21a8 8 0 0 0-16 0"></path>
+                                    <circle cx="10" cy="8" r="5"></circle>
+                                    <path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"></path>
+                                </svg>
+                                <h3 class="text-2xl font-bold mb-4">Controle total pelo proprietário</h3>
+                                <p class="text-gray-400 mb-6">Você controla tudo no sistema</p>
+                                <ul class="space-y-4">
+                                    <li class="flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg"
+                                            width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                            class="lucide lucide-check-circle2 w-5 h-5 text-green-500 flex-shrink-0">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <path d="m9 12 2 2 4-4"></path>
+                                        </svg><span>Controle total pelo proprietário</span></li>
+                                    <li class="flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg"
+                                            width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                            class="lucide lucide-check-circle2 w-5 h-5 text-green-500 flex-shrink-0">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <path d="m9 12 2 2 4-4"></path>
+                                        </svg><span>Atendimento personalizado</span></li>
+                                    <li class="flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg"
+                                            width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                            class="lucide lucide-check-circle2 w-5 h-5 text-green-500 flex-shrink-0">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <path d="m9 12 2 2 4-4"></path>
+                                        </svg><span>Gestão de contratos</span></li>
+                                    <li class="flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg"
+                                            width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                            class="lucide lucide-check-circle2 w-5 h-5 text-green-500 flex-shrink-0">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <path d="m9 12 2 2 4-4"></path>
+                                        </svg><span>Controle de despesas e manutenções</span></li>
+                                    <li class="flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg"
+                                            width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                            class="lucide lucide-check-circle2 w-5 h-5 text-green-500 flex-shrink-0">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <path d="m9 12 2 2 4-4"></path>
+                                        </svg><span>Relatórios mensais</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section class="py-20 reveal">
+                    <div class="max-w-7xl mx-auto px-4">
+                        <div class="grid md:grid-cols-3 gap-8">
+                            <div class="text-center p-6" style="opacity: 1; transform: none;">
+                                <div class="inline-block p-4 bg-gray-800 rounded-full mb-4"><svg
+                                        xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="lucide lucide-shield w-8 h-8 text-blue-500">
+                                        <path
+                                            d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z">
+                                        </path>
+                                    </svg></div>
+                                <h3 class="text-xl font-bold mb-2">Segurança Total</h3>
+                                <p class="text-gray-400">Seus dados protegidos com criptografia de ponta</p>
+                            </div>
+                            <div class="text-center p-6" style="opacity: 1; transform: none;">
+                                <div class="inline-block p-4 bg-gray-800 rounded-full mb-4"><svg
+                                        xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="lucide lucide-database w-8 h-8 text-blue-500">
+                                        <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                                        <path d="M3 5V19A9 3 0 0 0 21 19V5"></path>
+                                        <path d="M3 12A9 3 0 0 0 21 12"></path>
+                                    </svg></div>
+                                <h3 class="text-xl font-bold mb-2">Backup Automático</h3>
+                                <p class="text-gray-400">Seus dados sempre seguros e disponíveis</p>
+                            </div>
+                            <div class="text-center p-6" style="opacity: 1; transform: none;">
+                                <div class="inline-block p-4 bg-gray-800 rounded-full mb-4"><svg
+                                        xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="lucide lucide-lock w-8 h-8 text-blue-500">
+                                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg></div>
+                                <h3 class="text-xl font-bold mb-2">Controle de Acesso</h3>
+                                <p class="text-gray-400">Defina quem pode acessar cada área do sistema</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section class="py-20 bg-gradient-to-r from-blue-600 to-blue-800 reveal">
+                    <div class="max-w-7xl mx-auto px-4 text-center">
+                        <h2 class="text-4xl font-bold mb-6">Comece a controlar seus aluguéis hoje</h2>
+                        <p class="text-xl text-gray-200 mb-8 max-w-2xl mx-auto">Teste grátis por 7 dias e veja como é simples controlar seus aluguéis</p>
+                        <a href="https://wa.me/5511972336835" target="_blank" rel="noopener noreferrer" class="bg-white text-blue-600 px-8 py-3 rounded-full text-lg font-semibold hover:bg-gray-100 transition-colors">Falar no WhatsApp </a>
+                    </div>
+                </section>
+            </main>
+            <footer class="bg-gray-900 py-12">
+                <div class="max-w-7xl mx-auto px-4">
+                    <div class="grid md:grid-cols-4 gap-8">
+                        <div>
+                            <div class="flex items-center space-x-2 mb-6"><svg xmlns="http://www.w3.org/2000/svg"
+                                    width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    class="lucide lucide-building2 w-8 h-8 text-blue-500">
+                                    <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
+                                    <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path>
+                                    <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path>
+                                    <path d="M10 6h4"></path>
+                                    <path d="M10 10h4"></path>
+                                    <path d="M10 14h4"></path>
+                                    <path d="M10 18h4"></path>
+                                </svg><span class="text-xl font-bold">Đuka</span></div>
+                            <p class="text-gray-400">Feito para quem quer alugar sem complicação</p>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-semibold mb-4">Empresa</h4>
+                            <ul class="space-y-2 text-gray-400">
+                                <li><a href="#sobre" class="hover:text-blue-400 transition-colors">Sobre</a></li>
+                                <li><a href="#servicos" class="hover:text-blue-400 transition-colors">Serviços</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-semibold mb-4">Suporte</h4>
+                            <ul class="space-y-2 text-gray-400">
+                                <li><a href="https://wa.me/5511972336835" target="_blank" rel="noopener noreferrer" class="hover:text-blue-400 transition-colors">Ajuda</a></li>
+                                <li><a href="https://wa.me/5511972336835" target="_blank" rel="noopener noreferrer" class="hover:text-blue-400 transition-colors">Contato</a></li>
+                                <li><a href="#servicos" class="hover:text-blue-400 transition-colors">Status</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-semibold mb-4">Legal</h4>
+                            <ul class="space-y-2 text-gray-400">
+                                <li><a href="#" class="hover:text-blue-400 transition-colors">Privacidade</a></li>
+                                <li><a href="#" class="hover:text-blue-400 transition-colors">Termos</a></li>
+                                <li><a href="#" class="hover:text-blue-400 transition-colors">Cookies</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+                        <p>© <span id="ano-atual"></span> Đuka. Todos os direitos reservados.</p>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+
+</body>
+<script>
+document.getElementById('ano-atual').textContent = new Date().getFullYear();
+// Animação reveal
+const reveals = document.querySelectorAll('.reveal');
+reveals.forEach(el => {
+    el.classList.remove('visible');
+});
+const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+        }
+    });
+}, { threshold: 0.1 });
+reveals.forEach(el => observer.observe(el));
+// Menu mobile
+const menu = document.getElementById("mobile-menu");
+const openBtn = document.getElementById("menu-toggle");
+const closeBtn = document.getElementById("menu-close");
+
+openBtn.onclick = () => menu.classList.add("open");
+closeBtn.onclick = () => menu.classList.remove("open");
+
+menu.addEventListener("click", e=>{
+  if(e.target === menu) menu.classList.remove("open");
+});
+</script>
+<script>
+window.addEventListener("pageshow", function(event) {
+  if (event.persisted || performance.getEntriesByType("navigation")[0]?.type === "back_forward") {
+    window.location.reload();
+  }
+});
+</script>
+
+
+</html>
