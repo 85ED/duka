@@ -1,3 +1,33 @@
+// ==========================
+// APP REGISTRY CENTRAL
+// ==========================
+
+export const App = {
+    components: {},
+
+    register(name, component) {
+        this.components[name] = component;
+    },
+
+    get(name) {
+        return this.components[name];
+    },
+
+    async loadComponent(name) {
+        if (this.components[name]) {
+            return this.components[name];
+        }
+
+        try {
+            await import(`/components/${name}.js`);
+            return this.components[name];
+        } catch (err) {
+            console.error(`Erro ao carregar componente ${name}`, err);
+            return null;
+        }
+    }
+};
+
 // ===== CONFIG =====
 const API_BASE = '/api';
 let token = localStorage.getItem('token');
@@ -120,7 +150,7 @@ function logout() {
 }
 
 // ===== UTILITY FUNCTIONS =====
-function apiCall(endpoint, method = 'GET', body = null) {
+export function apiCall(endpoint, method = 'GET', body = null) {
     const options = {
         method,
         headers: {
@@ -134,7 +164,7 @@ function apiCall(endpoint, method = 'GET', body = null) {
     return fetch(`${API_BASE}${endpoint}`, options).then(res => res.json());
 }
 
-function showError(elementId, message) {
+export function showError(elementId, message) {
     const errorEl = document.getElementById(elementId);
     if (errorEl) {
         errorEl.textContent = message;
@@ -143,7 +173,7 @@ function showError(elementId, message) {
     }
 }
 
-function showToast(message, type = 'info') {
+export function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
     if (!container) return;
 
@@ -180,7 +210,7 @@ function toastFromAlert(message) {
 
 window.alert = toastFromAlert;
 
-function toggleSidebar() {
+export function toggleSidebar() {
     const sidebar = document.querySelector('.sidebar');
     const overlay = document.getElementById('sidebar-overlay');
     const isActive = sidebar.classList.toggle('active');
@@ -194,7 +224,7 @@ function toggleSidebar() {
     }
 }
 
-function closeSidebar() {
+export function closeSidebar() {
     const sidebar = document.querySelector('.sidebar');
     const overlay = document.getElementById('sidebar-overlay');
     sidebar.classList.remove('active');
@@ -218,7 +248,7 @@ function formatDate(dateString) {
     return date.toLocaleDateString('pt-BR');
 }
 
-function openModal(content) {
+export function openModal(content) {
     document.getElementById('modal-body').innerHTML = content;
     document.getElementById('modal').classList.remove('hidden');
     document.getElementById('modal').classList.add('active');
@@ -230,7 +260,7 @@ function openModal(content) {
     });
 }
 
-function closeModal() {
+export function closeModal() {
     document.getElementById('modal').classList.remove('active');
     document.getElementById('modal').classList.add('hidden');
 }
@@ -2665,107 +2695,30 @@ async function showUnitForm(unit = null) {
         }
     });
 }
-
-// ===== TENANTS (INQUILINOS) =====
+// ===== TENANTS (INQUILINOS) - Carregamento Dinâmico =====
 async function loadTenants() {
     updatePageTitle('Inquilinos');
+    
+    const comp = await App.loadComponent('tenants');
+    if (!comp) return;
 
-    try {
-        const tenants = await apiCall('/tenants');
-
-        let html = '<div class="card"><div class="card-header"><h2>Meus Inquilinos</h2><small style="color: var(--text-secondary); font-weight: normal;">Seus moradores. Guarde o nome, telefone e email para contatos importantes.</small>';
-        html += '<button class="btn btn-primary btn-small" data-action="add-tenant">+ Novo Inquilino</button></div>';
-        html += '<div class="card-body">';
-
-        if (tenants.length === 0) {
-            html += '<p style="text-align: center; color: var(--text-secondary);">Nenhum inquilino cadastrado</p>';
-        } else {
-            html += '<table class="table"><thead><tr><th>Nome</th><th>Documento</th><th>Email</th><th>Telefone</th><th>Ações</th></tr></thead><tbody>';
-            tenants.forEach(t => {
-                html += `<tr>
-                    <td data-label="Nome"><strong>${t.name}</strong></td>
-                    <td data-label="Documento">${t.document || '-'}</td>
-                    <td data-label="Email">${t.email || '-'}</td>
-                    <td data-label="Telefone">${t.phone || '-'}</td>
-                    <td data-label="Ações" class="td-actions">
-                        <button class="btn btn-small btn-secondary" data-action="edit-tenant" data-id="${t.id}">Editar</button>
-                    </td>
-                </tr>`;
-            });
-            html += '</tbody></table>';
-        }
-
-        html += '</div></div>';
-        document.getElementById('content').innerHTML = html;
-    } catch (error) {
-        document.getElementById('content').innerHTML = `<div class="error-message show">${error.message}</div>`;
+    // 🔥 Garante inicialização do componente
+    if (!comp.contentContainer) {
+        comp.init();
     }
+
+    await comp.renderList();
 }
 
 function showTenantForm(tenant = null) {
-
-    const isEdit = tenant !== null;
-    const form = `<h2>${isEdit ? 'Editar' : 'Novo'} Inquilino</h2>
-        <form id="tenant-form">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Nome *</label>
-                    <input type="text" id="tenant-name" value="${tenant?.name || ''}" required>
-                </div>
-                <div class="form-group">
-                    <label>Documento (CPF/CNPJ)</label>
-                    <input type="text" id="tenant-document" value="${tenant?.document || ''}">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="tenant-email" value="${tenant?.email || ''}">
-                </div>
-                <div class="form-group">
-                    <label>Telefone</label>
-                    <input type="text" id="tenant-phone" value="${tenant?.phone || ''}">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Documento PDF (URL)</label>
-                    <input type="url" id="tenant-document-url" value="${tenant?.document_url || ''}" placeholder="https://...">
-                    ${tenant?.document_url ? `<a href="${tenant.document_url}" target="_blank" style="font-size:13px;">Ver PDF atual</a>` : ''}
-                </div>
-            </div>
-            <div class="form-actions">
-                <button type="button" class="btn btn-secondary" data-modal-cancel>Cancelar</button>
-                <button type="submit" class="btn btn-primary">Salvar</button>
-            </div>
-        </form>`;
-    openModal(form);
-
-    document.getElementById('tenant-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        try {
-            const data = {
-                name: document.getElementById('tenant-name').value,
-                document: document.getElementById('tenant-document').value,
-                email: document.getElementById('tenant-email').value,
-                phone: document.getElementById('tenant-phone').value,
-                document_url: document.getElementById('tenant-document-url').value
-            };
-            if (tenant && tenant.id) {
-                await apiCall(`/tenants/${tenant.id}`, 'PUT', data);
-            } else {
-                await apiCall('/tenants', 'POST', data);
-            }
-            closeModal();
-            loadTenants();
-        } catch (error) {
-            alert('Erro: ' + error.message);
-        }
-    });
+    const comp = App.get('tenants');
+    if (comp) {
+        comp.showForm(tenant);
+    }
 }
 
 // ===== HELPER FUNCTIONS =====
-function updatePageTitle(title) {
+export function updatePageTitle(title) {
     document.getElementById('page-title').textContent = title;
 }
 
@@ -2883,11 +2836,6 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'add-unit': showUnitForm(); break;
             case 'edit-unit': 
                 apiCall(`/units/${id}`).then(u => showUnitForm(u));
-                break;
-            // Tenants
-            case 'add-tenant': showTenantForm(); break;
-            case 'edit-tenant':
-                apiCall(`/tenants/${id}`).then(t => showTenantForm(t));
                 break;
             // Properties (legacy)
             case 'add-property': showPropertyForm(); break;

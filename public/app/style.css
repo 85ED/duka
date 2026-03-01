@@ -636,6 +636,15 @@ body {
     min-width: 200px;
 }
 
+.card-header--description {
+    color: var(--text-secondary);
+    font-weight: normal;
+    display: block;
+    width: 100%;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
 .card-body {
     padding: 20px;
 }
@@ -645,6 +654,27 @@ body {
     border-top: 1px solid var(--border-color);
     background-color: var(--light-bg);
     text-align: right;
+}
+
+/* ===== COMPONENT-SPECIFIC STYLES ===== */
+
+.empty-state {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 40px 20px;
+    font-size: 14px;
+}
+
+.doc-link {
+    font-size: 13px;
+    text-decoration: none;
+    color: var(--primary-color);
+    display: inline-block;
+    margin-top: 8px;
+}
+
+.doc-link:hover {
+    text-decoration: underline;
 }
 
 /* ===== TABLES ===== */

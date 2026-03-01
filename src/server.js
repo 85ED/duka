@@ -22,8 +22,12 @@ const ROOT = path.join(__dirname, '..');
 /* ========= STATIC FILES ========= */
 app.use('/assets', express.static(path.join(ROOT, 'public/assets')));
 app.use('/site', express.static(path.join(ROOT, 'public/site')));
-app.use('/app', express.static(path.join(ROOT, 'public/app')));
 app.use(express.static(path.join(ROOT, 'public')));
+
+/* ========= APP ROUTE (Must be AFTER static files, BEFORE /api) ========= */
+app.get('/app', (req, res) => {
+    res.sendFile(path.join(ROOT, 'public/app/index.html'));
+});
 
 /* ========= ROTAS ========= */
 app.get('/login', (req, res) => {
@@ -42,7 +46,7 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Something went wrong!' });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server running on port ${PORT}`);

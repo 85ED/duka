@@ -4,15 +4,24 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Đuka - Gestão de Imóveis</title>
+	<link rel="icon" href="/app/favicon.ico" type="image/x-icon">
 	<link rel="stylesheet" href="/app/style-responsive.css?v=20260220_RESPONSIVE_TABLES">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+	<style>
+		/* Estilos específicos para login */
+		body {
+			margin: 0;
+			padding: 0;
+			background: #f5f5f5;
+		}
+	</style>
 </head>
 <body>
-	<!-- Login Section -->
+	<!-- Login Section ONLY -->
 	<div id="login-section" class="auth-section active">
 		<div class="auth-container">
 			<div class="auth-card">
-				   <h1><a href="/" style="color:inherit;text-decoration:none;">Đuka</a></h1>
+				<h1><a href="/" style="color:inherit;text-decoration:none;">Đuka</a></h1>
 				<p class="subtitle">Plataforma SaaS de Gestão de Imóveis</p>
                 
 				<form id="login-form">
@@ -31,107 +40,82 @@
 				<p class="auth-link" style="text-align: center; margin-top: 15px; color: #999; font-size: 13px;">
 					Plataforma de gerenciamento de propriedades
 				</p>
-					<div style="text-align: center; color: var(--primary-color); font-size: 12.5px; margin-top: 8px; letter-spacing: 0.5px; font-weight: 600;">
-						CODE85
-					</div>
+				<div style="text-align: center; color: var(--primary-color); font-size: 12.5px; margin-top: 8px; letter-spacing: 0.5px; font-weight: 600;">
+					CODE85
+				</div>
 			</div>
 		</div>
 	</div>
 
-	<!-- Main Application -->
-	<div id="app-section" class="app-section">
-		<!-- Navigation -->
-		<nav class="sidebar">
-			<div class="sidebar-header">
-				<h2>Đuka</h2>
-				<button class="close-sidebar" onclick="toggleSidebar()" aria-label="Fechar menu">
-					<i class="fa-solid fa-xmark"></i>
-				</button>
-			</div>
-			<ul class="nav-menu">
-				<li id="dashboard-menu">
-					<a href="#" data-action="dashboard" class="nav-link"><i class="fa-solid fa-chart-line" style="margin-right: 10px; width: 20px;"></i>Dashboard</a>
-				</li>
-				<li id="charges-menu" style="display:none;">
-					<a href="#" data-action="charges" class="nav-link"><i class="fa-solid fa-receipt" style="margin-right: 10px; width: 20px;"></i>Cobranças</a>
-				</li>
-				<li id="expenses-menu" style="display:none;">
-					<a href="#" data-action="expenses" class="nav-link"><i class="fa-solid fa-money-bill-wave" style="margin-right: 10px; width: 20px;"></i>Despesas</a>
-				</li>
-				<li id="services-menu" style="display:none;">
-					<a href="#" data-action="services" class="nav-link"><i class="fa-solid fa-wrench" style="margin-right: 10px; width: 20px;"></i>Serviços</a>
-				</li>
-				<li id="tenants-menu" style="display:none;">
-					<a href="#" data-action="tenants" class="nav-link"><i class="fa-solid fa-users" style="margin-right: 10px; width: 20px;"></i>Inquilinos</a>
-				</li>
-				<li id="contracts-menu" style="display:none;">
-					<a href="#" data-action="contracts" class="nav-link"><i class="fa-solid fa-file-contract" style="margin-right: 10px; width: 20px;"></i>Contratos</a>
-				</li>
-				<li id="enterprises-menu" style="display:none;">
-					<a href="#" data-action="enterprises" class="nav-link"><i class="fa-solid fa-building" style="margin-right: 10px; width: 20px;"></i>Empreendimentos</a>
-				</li>
-				<li id="units-menu" style="display:none;">
-					<a href="#" data-action="units" class="nav-link"><i class="fa-solid fa-door-open" style="margin-right: 10px; width: 20px;"></i>Unidades</a>
-				</li>
-				<li id="expenses-menu" style="display:none;">
-					<a href="#" data-action="expenses" class="nav-link"><i class="fa-solid fa-money-bill-wave" style="margin-right: 10px; width: 20px;"></i>Despesas</a>
-				</li>
-				<li id="users-menu" style="display:none;">
-					<a href="#" data-action="users" class="nav-link"><i class="fa-solid fa-user-tie" style="margin-right: 10px; width: 20px;"></i>Usuários</a>
-				</li>
-				<li id="partners-menu" style="display:none;">
-					<a href="#" data-action="partners" class="nav-link"><i class="fa-solid fa-handshake" style="margin-right: 10px; width: 20px;"></i>Sócios</a>
-				</li>
-				<li id="clients-menu" style="display:none;">
-					<a href="#" data-action="clients" class="nav-link"><i class="fa-solid fa-sitemap" style="margin-right: 10px; width: 20px;"></i>Clientes (Admin)</a>
-				</li>
-				<li id="properties-menu" style="display:none;">
-					<a href="#" data-action="properties" class="nav-link"><i class="fa-solid fa-archive" style="margin-right: 10px; width: 20px;"></i>Propriedades (Legado)</a>
-				</li>
-				<li>
-					<a href="#" data-action="logout" class="nav-link"><i class="fa-solid fa-sign-out-alt" style="margin-right: 10px; width: 20px;"></i>Sair</a>
-				</li>
-			</ul>
-		</nav>
+	<!-- Login Script ONLY -->
+	<script>
+		const API_BASE = '/api';
 
-		<!-- Header -->
-		<header class="top-bar">
-			<button class="menu-toggle" id="toggle-menu-btn" aria-label="Abrir menu">
-				<i class="fa-solid fa-bars"></i>
-			</button>
-			<h1 id="page-title">Dashboard</h1>
-			<div class="user-info">
-				<span id="user-name">Usuário</span>
-				<button id="logout-btn" class="btn btn-small">Sair</button>
-			</div>
-		</header>
+		document.getElementById('login-form')?.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const email = document.getElementById('login-email').value;
+			const password = document.getElementById('login-password').value;
 
-		<!-- Main Content -->
-		<main class="main-content">
-			<div id="content" class="content-area"></div>
-		</main>
+			try {
+				console.log(`[LOGIN] Enviando credenciais para: ${email}`);
+				
+				const res = await fetch(`${API_BASE}/auth/login`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ email, password })
+				});
 
-		<!-- Footer -->
-		<footer class="footer">
-			<span>Đuka — Gestão de Imóveis © <span id="year">2026</span> CODE85</span>
-		</footer>
-	</div>
+				console.log(`[LOGIN] Response status: ${res.status}`);
+				let data;
+				try {
+					data = await res.json();
+				} catch (parseErr) {
+					console.error(`[LOGIN] Erro ao fazer parse JSON:`, parseErr);
+					const errorDiv = document.getElementById('login-error');
+					errorDiv.textContent = 'Erro ao processar resposta do servidor';
+					errorDiv.style.display = 'block';
+					return;
+				}
+				
+				console.log(`[LOGIN] Response data:`, data);
+				
+				if (!res.ok) {
+					const errorMsg = data.error || `Erro ${res.status}: ${res.statusText}`;
+					console.error(`[LOGIN] Erro na resposta:`, errorMsg);
+					const errorDiv = document.getElementById('login-error');
+					errorDiv.textContent = errorMsg;
+					errorDiv.style.display = 'block';
+					alert(`Erro ao fazer login: ${errorMsg}`);
+					return;
+				}
 
-	<!-- Sidebar Overlay (Mobile) -->
-	<div id="sidebar-overlay" class="sidebar-overlay"></div>
+				if (!data.token || !data.user) {
+					console.error(`[LOGIN] Resposta incompleta:`, data);
+					const errorDiv = document.getElementById('login-error');
+					errorDiv.textContent = 'Resposta incompleta do servidor';
+					errorDiv.style.display = 'block';
+					alert('Erro: Resposta incompleta do servidor');
+					return;
+				}
 
-	<!-- Modal -->
-	<div id="modal" class="modal hidden">
-		<div class="modal-content">
-			<button class="modal-close" id="modal-close-btn" aria-label="Fechar">
-				<i class="fa-solid fa-xmark"></i>
-			</button>
-			<div id="modal-body"></div>
-		</div>
-	</div>
+				console.log(`[LOGIN] Autenticação bem-sucedida para user_id: ${data.user.id}`);
+				
+				localStorage.setItem('token', data.token);
+				localStorage.setItem('currentUser', JSON.stringify(data.user));
+				
+				console.log(`[LOGIN] LocalStorage atualizado`);
+				console.log(`[LOGIN] Redirecionando para /app`);
+				
+				// ✅ Redirecionar para SPA após login bem-sucedido
+				window.location.href = '/app';
 
-	<div id="toast-container" class="toast-container"></div>
-
-	<script src="/app/script.js?v=20260220_RESPONSIVE_TABLES"></script>
+			} catch (error) {
+				console.error(`[LOGIN] Erro não capturado:`, error);
+				const errorDiv = document.getElementById('login-error');
+				errorDiv.textContent = `Erro: ${error.message}`;
+				errorDiv.style.display = 'block';
+			}
+		});
+	</script>
 </body>
 </html>
