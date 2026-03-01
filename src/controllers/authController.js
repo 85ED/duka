@@ -1,7 +1,6 @@
 const User = require('../models/User');
 const Account = require('../models/Account');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
 const db = require('../config/database');
 
 // Apenas login agora - Platform Admin cria novos clientes
@@ -17,8 +16,7 @@ exports.login = async (req, res) => {
         }
 
         console.log(`[LOGIN] Usuário encontrado: ${email}, ID: ${user.id}`);
-        const valid = await bcrypt.compare(password, user.password_hash);
-        if (!valid) {
+        if (password !== user.password) {
             console.log(`[LOGIN] Senha inválida para: ${email}`);
             return res.status(401).json({ error: 'Credenciais inválidas' });
         }

@@ -1,12 +1,10 @@
 const db = require('../config/database');
-const bcrypt = require('bcrypt');
 
 class User {
     static async create({ accountId, name, email, password, role = 'member', primaryUserId = null }) {
-        const passwordHash = await bcrypt.hash(password, 10);
         const [result] = await db.execute(
-            'INSERT INTO users (account_id, name, email, password_hash, role, primary_user_id) VALUES (?, ?, ?, ?, ?, ?)',
-            [accountId, name, email, passwordHash, role, primaryUserId]
+            'INSERT INTO users (account_id, name, email, password, role, primary_user_id) VALUES (?, ?, ?, ?, ?, ?)',
+            [accountId, name, email, password, role, primaryUserId]
         );
         return result.insertId;
     }
@@ -14,7 +12,7 @@ class User {
     static async findByEmail(email) {
         // Only active users
         const [rows] = await db.execute(
-            'SELECT * FROM users WHERE email = ? AND deleted_at IS NULL',
+            'SELECT id, name, email, password, role, account_id, primary_user_id FROM users WHERE email = ? AND deleted_at IS NULL',
             [email]
         );
         return rows[0];

@@ -1,6 +1,5 @@
 const Account = require('../models/Account');
 const User = require('../models/User');
-const bcrypt = require('bcrypt');
 
 // Platform Admin: listar todos os clientes
 exports.listClients = async (req, res) => {
@@ -284,11 +283,10 @@ exports.resetUserPassword = async (req, res) => {
         }
 
         const db = require('../config/database');
-        const passwordHash = await bcrypt.hash(newPassword, 10);
 
         const [result] = await db.execute(
-            'UPDATE users SET password_hash = ? WHERE id = ? AND deleted_at IS NULL',
-            [passwordHash, userId]
+            'UPDATE users SET password = ? WHERE id = ? AND deleted_at IS NULL',
+            [newPassword, userId]
         );
 
         if (result.affectedRows === 0) {

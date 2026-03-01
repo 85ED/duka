@@ -1,5 +1,4 @@
 const db = require('../config/database');
-const bcrypt = require('bcrypt');
 
 class Account {
     static async create(name, type = 'client') {
