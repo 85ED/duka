@@ -38,8 +38,8 @@ const TenantsComponent = {
             let html = '<div class="card">';
             html += '<div class="card-header">';
             html += '<h2>Meus Inquilinos</h2>';
-            html += '<small class="card-header--description">Seus moradores. Guarde o nome, telefone e email para contatos importantes.</small>';
-            html += '<button class="btn btn-primary btn-small" data-component="tenants" data-action="add">+ Novo Inquilino</button>';
+            html += '<small class="card-header-description">Seus moradores. Guarde o nome, telefone e email para contatos importantes.</small>';
+            html += '<button class="btn btn-primary btn-sm" data-component="tenants" data-action="add">+ Novo Inquilino</button>';
             html += '</div>';
             html += '<div class="card-body">';
 
@@ -56,8 +56,8 @@ const TenantsComponent = {
                         <td data-label="Documento">${t.document || '-'}</td>
                         <td data-label="Email">${t.email || '-'}</td>
                         <td data-label="Telefone">${t.phone || '-'}</td>
-                        <td data-label="Ações" class="td-actions">
-                            <button class="btn btn-small btn-secondary" data-component="tenants" data-action="edit" data-id="${t.id}">Editar</button>
+                        <td data-label="Ações" class="table-actions">
+                            <button class="btn btn-sm btn-secondary" data-component="tenants" data-action="edit" data-id="${t.id}">Editar</button>
                         </td>
                     </tr>`;
                 });
