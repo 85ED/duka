@@ -724,3 +724,260 @@ Agora você pode escalar para:
 
 **Sem tocar no HTML nunca mais.**
 
+---
+
+# 🎨 INTEGRAÇÃO CSS GLOBAL (Nova Fase)
+
+## Status: Em Desenvolvimento
+
+Uma IA está refatorando o CSS completo do projeto para solucionar problemas de navegação feia e inconsistência visual. Esta seção define como usar o novo CSS durante o refactor de componentes.
+
+---
+
+## 📋 Estrutura de CSS (Padrão Obrigatório)
+
+### Arquivos CSS do Projeto
+
+```
+public/app/
+├── style.css                    ← CSS global (gerado pela IA)
+├── style-responsive.css         ← Breakpoints responsivos
+└── components/
+    ├── tenants.css              ← CSS do componente (FUTURO)
+    ├── contracts.css            ← CSS do componente (FUTURO)
+    └── ...
+```
+
+### Regra Ouro: CSS Centralizado
+
+- ❌ **Nunca** inline `style="..."`
+- ❌ **Nunca** generate CSS via JavaScript
+- ✅ **Toda** classe em arquivo `.css`
+- ✅ **Componentes** usam classes predefinidas
+
+---
+
+## 🎯 Como Usar o Novo CSS Global
+
+### 1️⃣ Quando o CSS Global For Entregue
+
+**A IA vai criar ou atualizar:**
+- `public/app/style.css` (componentes, layouts, temas)
+- `public/app/style-responsive.css` (mobile, tablet, desktop)
+- Documentação de classes disponíveis
+
+**Você deve:**
+1. ✅ Fazer backup dos CSS antigos
+2. ✅ Substituir `style.css` e `style-responsive.css`
+3. ✅ Testar visualmente cada tela (desktop + mobile)
+4. ✅ Verificar se há erros de classe não encontrada (console)
+5. ✅ Fazer commit: `git commit -am "refactor: Integrate global CSS redesign"`
+
+### 2️⃣ Convenções de Classes CSS Globais
+
+**Nomenclatura:**
+
+```css
+/* Componentes estruturais */
+.card                   /* Container principal */
+.card-header           /* Cabeçalho do card */
+.card-body             /* Conteúdo do card */
+.card-footer           /* Rodapé do card */
+
+/* Botões */
+.btn                   /* Botão base */
+.btn-primary           /* Ação principal */
+.btn-secondary         /* Ação secundária */
+.btn-danger            /* Perigo/exclusão */
+.btn-small             /* Tamanho pequeno */
+
+/* Formulários */
+.form-group            /* Agrupamento de campo */
+.form-row              /* Linha com múltiplos campos */
+.form-control          /* Input/textarea padrão */
+
+/* Layouts */
+.container             /* Contenedor centralizado */
+.grid                  /* Grid layout */
+.flex-row / .flex-col  /* Flexbox row/col */
+
+/* Utilidades */
+.mt-X                  /* Margin top (X = 1,2,3,4)*/
+.p-X                   /* Padding (X = 1,2,3,4) */
+.text-center           /* Alinhamento texto */
+.hidden                /* Display none */
+.error-message         /* Mensagem de erro */
+.success-message       /* Mensagem de sucesso */
+```
+
+### 3️⃣ Template de Componente com Novo CSS
+
+**Quando refatorar componentes, usar:**
+
+```javascript
+const MeuComponent = {
+    renderList: async function() {
+        if (!this.contentContainer) this.init();
+
+        try {
+            const data = await apiCall(this.baseUrl);
+
+            let html = `
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Meus Itens</h2>
+                        <button class="btn btn-primary" data-action="add">
+                            + Novo
+                        </button>
+                    </div>
+                    
+                    <div class="card-body">
+                        <table class="data-table">
+                            <!-- dados aqui -->
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            this.contentContainer.innerHTML = html;
+        } catch (error) {
+            this.contentContainer.innerHTML = 
+                `<div class="error-message show">${error.message}</div>`;
+        }
+    }
+};
+```
+
+---
+
+## 🚀 Próximas Etapas do Refactor com CSS
+
+### FASE 0: CSS Global (ATUAL)
+**Status:** 🔄 Em desenvolvimento pela IA
+- [ ] IA cria `style.css` completo
+- [ ] IA cria `style-responsive.css` completo
+- [ ] Documentação de classes
+- [ ] PR entregue e revisado
+
+### FASE 1: Integração CSS (PRÓXIMA - 1-2 dias)
+**Após CSS global estar pronto:**
+- [ ] Substituir arquivos CSS antigos
+- [ ] Testar todas as telas com novo CSS
+- [ ] Ajustar classes conforme necessário
+- [ ] Verificar responsividade (mobile/tablet/desktop)
+- [ ] Commit: "refactor: Integrate global CSS redesign"
+
+### FASE 2: Refactor Componentes com Novo CSS (DEPOIS)
+**Durante conversão de componentes:**
+- [ ] Remover ALL inline styles
+- [ ] Remover CSS inline gerado por JS
+- [ ] Usar classes globais em HTML
+- [ ] Components: Tenants ✅, Contracts, Units, Enterprises
+- [ ] Testar cada componente com novo CSS
+- [ ] Commit por componente
+
+### FASE 3: Componentes CSS Específicos (OPCIONAL)
+**Se necessário para componentes complexos:**
+- [ ] Criar `component-name.css` em `/public/components/`
+- [ ] Manter padrão de nomenclatura
+- [ ] Usar variáveis CSS globais
+- [ ] Evitar duplicação de estilos
+
+---
+
+## 📝 Checklist de Refactor com Novo CSS
+
+Para cada tela que migrar para componente:
+
+- [ ] **CSS OK?** Tela usa apenas classes (zero inline styles)
+- [ ] **Responsiva?** Testada em 3 resoluções
+- [ ] **Classes existem?** All classes defined in global CSS
+- [ ] **Dark mode?** Se aplicável (verificar com IA)
+- [ ] **Acessibilidade?** Labels, ARIA, contrast
+- [ ] **Componente funcional?** 100% behavior preserved
+- [ ] **Console limpo?** Zero erros/warnings
+- [ ] **PR descrito?** Explicado o que foi feito
+
+---
+
+## 🎯 Exemplos de Classes a Usar
+
+```html
+<!-- ✅ CORRETO com novo CSS -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="title">Inquilinos</h2>
+    </div>
+    <div class="card-body">
+        <button class="btn btn-primary btn-small" data-action="add">
+            + Novo
+        </button>
+    </div>
+</div>
+
+<!-- ❌ ERRADO - estilos inline -->
+<div style="border: 1px solid #ddd; padding: 10px;">
+    <h2 style="color: #333;">Inquilinos</h2>
+    <button style="background: #007bff; color: white; padding: 5px 10px;">
+        + Novo
+    </button>
+</div>
+```
+
+---
+
+## 📞 Comunicação com IA de CSS
+
+**Quando IA entregar CSS global, fazer:**
+
+1. ✅ Review classes disponíveis
+2. ✅ Listar dúvidas/ajustes
+3. ✅ Testar em produção candidate
+4. ✅ Dar feedback (responsiva? cores? contrast?)
+5. ✅ Aprovar ou solicitar ajustes
+
+**Informações que IA precisa:**
+
+```
+Status da Aplicação:
+- Aplicação: SaaS de gestão de imóveis (Đuka)
+- Usuários: Admin e Cliente (multi-tenant)
+- Tema: Light (dark mode futuro?)
+- Telas: Dashboard, Contratos, Cobranças, Despesas, Inquilinos, etc
+- Navegação: Sidebar + main content
+- Prioridade: MOBILE FIRST - problemas de navegação mobile
+- Próxima fase: Componentes modulares em Vanilla JS
+```
+
+---
+
+## ✅ Quando CSS Global Estiver Pronto
+
+**Executar nesta ordem:**
+
+```bash
+# 1. Criar branch para integração
+git checkout -b refactor/css-integration
+
+# 2. Copiar novos arquivos CSS
+# (IA fornece style.css e style-responsive.css)
+
+# 3. Testar visualmente
+npm run dev
+# Verificar cada tela: dashboard, contratos, inquilinos, etc
+
+# 4. Testar responsividade
+# Chrome DevTools: F12 → Toggle device toolbar
+# Testar: 375px (mobile), 768px (tablet), 1920px (desktop)
+
+# 5. Commit
+git add public/app/style.css public/app/style-responsive.css
+git commit -m "refactor: Integrate global CSS redesign - fixes navigation and consistency"
+
+# 6. Merge em main
+git push origin refactor/css-integration
+# Abrir PR, testar, mergear
+```
+
+---
+
