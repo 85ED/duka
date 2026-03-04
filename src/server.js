@@ -22,6 +22,17 @@ app.use(express.json());
 const ROOT = path.join(__dirname, '..');
 
 /* ========= STATIC FILES ========= */
+// No-store para JS/CSS de componentes — evita cache stale no browser
+app.use('/components', (req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store');
+    next();
+});
+app.use('/app', (req, res, next) => {
+    if (req.path.endsWith('.js') || req.path.endsWith('.css')) {
+        res.setHeader('Cache-Control', 'no-store');
+    }
+    next();
+});
 app.use('/assets', express.static(path.join(ROOT, 'public/assets')));
 app.use('/site', express.static(path.join(ROOT, 'public/site')));
 app.use(express.static(path.join(ROOT, 'public')));

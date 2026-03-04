@@ -217,7 +217,22 @@ const UnitsComponent = {
                     <button type="button" class="btn btn-secondary" data-modal-cancel>Cancelar</button>
                     <button type="submit" class="btn btn-primary">Salvar</button>
                 </div>
-            </form>`;
+            </form>
+            ${isEdit && unit.contract_id ? `
+            <hr style="margin: 28px 0 14px; border-color: var(--gray-200);">
+            <p style="font-size: var(--text-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-400); margin-bottom: 10px;">
+                <i class="fa-solid fa-triangle-exclamation"></i> Ações da unidade
+            </p>
+            <p style="font-size: var(--text-sm); color: var(--gray-500); margin-bottom: 12px;">
+                Unidade ocupada por <strong>${unit.tenant_name || 'inquílino'}</strong>.
+                Ao liberar, o contrato será encerrado e a unidade ficará vaga.
+            </p>
+            <button type="button" class="btn btn-danger"
+                    data-modal-action="release-from-edit"
+                    data-contract-id="${unit.contract_id}"
+                    data-unit-name="${unit.identifier}">
+                <i class="fa-solid fa-door-open"></i> Liberar unidade
+            </button>` : ''}`;
 
         openModal(form);
     },
@@ -267,6 +282,15 @@ const UnitsComponent = {
             if (e.target.id === 'release-form') {
                 self._handleReleaseSubmit(e);
             }
+        });
+        // Botão Liberar dentro do modal de edição
+        modalBody.addEventListener('click', function(e) {
+            const btn = e.target.closest('[data-modal-action="release-from-edit"]');
+            if (!btn) return;
+            e.preventDefault();
+            const contractId  = btn.getAttribute('data-contract-id');
+            const unitName    = btn.getAttribute('data-unit-name');
+            self.showReleaseForm(contractId, unitName);
         });
     },
 

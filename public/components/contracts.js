@@ -407,8 +407,16 @@ const ContractsComponent = {
                    </a>`
                 : '<span class="text-secondary">Não vinculado</span>';
 
+            // location_name vem do findAll; findById retorna enterprise_name + unit_identifier
+            const locationLabel = contract.location_name
+                || (contract.enterprise_name && contract.unit_identifier
+                    ? `${contract.enterprise_name} — ${contract.unit_identifier}`
+                    : contract.property_address
+                    || contract.unit_identifier
+                    || 'Contrato');
+
             const form = `
-                <h2>Contrato: ${contract.location_name || contract.property_address}</h2>
+                <h2>Contrato: ${locationLabel}</h2>
                 <p><strong>Inquilino:</strong> ${contract.tenant_name}</p>
                 <p><strong>Endereço:</strong> ${contractAddress}</p>
                 <p><strong>Link:</strong> ${contractLinkHtml}</p>
@@ -472,7 +480,7 @@ const ContractsComponent = {
                             data-id="${contractId}"
                             data-unit-id="${contract.unit_id}"
                             data-rent="${contract.rent_amount}"
-                            data-location="${(contract.location_name || contract.property_address || '').replace(/"/g, '&quot;')}">
+                            data-location="${(locationLabel).replace(/"/g, '&quot;')}">
                         <i class="fa-solid fa-arrows-rotate"></i> Substituir inquílino
                     </button>
                 </div>`;
