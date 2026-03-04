@@ -19,7 +19,9 @@ export const App = {
         }
 
         try {
-            await import(`/components/${name}.js`);
+            // cache-bust: evita que o browser sirva JS estale do disk-cache
+            const bust = `v=${Date.now()}`;
+            await import(`/components/${name}.js?${bust}`);
             return this.components[name];
         } catch (err) {
             console.error(`Erro ao carregar componente ${name}`, err);
@@ -252,12 +254,6 @@ export function openModal(content) {
     document.getElementById('modal-body').innerHTML = content;
     document.getElementById('modal').classList.remove('hidden');
     document.getElementById('modal').classList.add('active');
-    
-    // Add listeners for cancel buttons in modal
-    const modalCancelBtns = document.querySelectorAll('#modal-body button[type="button"].btn-secondary');
-    modalCancelBtns.forEach(btn => {
-        btn.addEventListener('click', () => closeModal());
-    });
 }
 
 export function closeModal() {
