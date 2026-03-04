@@ -289,23 +289,23 @@ async function loadTenants() {
 
 ---
 
-# � STATUS: 1/11 Componentes (9%)
+# 📌 STATUS: 2/11 Componentes (18%)
 
 ```
-✅ 1 completo    → Tenants (modelo de referência)
-⏳ 10 pendentes  → Escalonados em 3 fases por complexidade
+✅ 2 completos   → Tenants (modelo de referência), Contracts
+⏳ 9 pendentes   → Escalonados em 3 fases por complexidade
 ```
 
 ---
 
 # 📋 Telas a Refatorar (Ordem Recomendada)
 
-## ✅ CONCLUÍDO (1/11)
+## ✅ CONCLUÍDO (2/11)
 - ✔ **Tenants** - Modelo de referência já implementado
+- ✔ **Contracts** - CRUD completo + Serviços vinculados
 
 ## ⏳ PHASE 1: CRUD Simples (4/11)
-- ⬜ **Contracts** ← PRÓXIMO (extração ~200 linhas)
-- ⬜ **Units** (Unidades)
+- ◾ **Units** (Unidades) ← PRÓXIMO
 - ⬜ **Enterprises** (Empresas)
 - ⬜ **Properties** (Propriedades - legado)
 
@@ -568,13 +568,18 @@ App.register('[componente]', [Componente]Component);
 ## ✅ Concluído
 
 - ✅ **Tenants** (Inquilinos) - Modelo de referência
+- ✅ **Contracts** (Contratos) — `/public/components/contracts.js`
+  - CRUD completo (criar, editar contrato)
+  - Submodal de serviços vinculados ao contrato
+  - Zero inline styles — usa `badge-success/pending/overdue`, `doc-link`, `table-actions`
+  - `formatCurrency` e `formatDate` agora exportados de `script.js`
+  - Event delegation: lista → `#content` | formulários/modal → `#modal-body`
 
 ### Fase 1: Componentes Pequenos (Esta semana)
 
-1. ⬜ **Contracts** (~200 linhas, CRUD simples) - PRÓXIMO
-2. ⬜ **Units** (~180 linhas, CRUD simples)
-3. ⬜ **Enterprises** (~150 linhas, CRUD simples)
-4. ⬜ **Properties** (~200 linhas, legado)
+1. ◾ **Units** (~180 linhas, CRUD simples) - PRÓXIMO
+2. ◾ **Enterprises** (~150 linhas, CRUD simples)
+3. ◾ **Properties** (~200 linhas, legado)
 
 ### Fase 2: Componentes Médios (Próxima semana)
 
@@ -844,7 +849,7 @@ Para **cada nova tela** a refatorar, seguir esta ordem:
 
 | Tela | Arquivo | Status |
 |---|---|---|
-| Contracts | `/public/components/contracts.js` | ⬜ Pendente |
+| Contracts | `/public/components/contracts.js` | ✅ Concluído |
 | Units | `/public/components/units.js` | ⬜ Pendente |
 | Enterprises | `/public/components/enterprises.js` | ⬜ Pendente |
 | Properties | `/public/components/properties.js` | ⬜ Pendente |

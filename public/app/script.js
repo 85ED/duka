@@ -233,14 +233,14 @@ export function closeSidebar() {
     }
 }
 
-function formatCurrency(value) {
+export function formatCurrency(value) {
     return new Intl.NumberFormat('pt-BR', {
         style: 'currency',
         currency: 'BRL'
     }).format(value);
 }
 
-function formatDate(dateString) {
+export function formatDate(dateString) {
     if (!dateString) return '-';
     // Fix timezone issue: parse YYYY-MM-DD as local date
     const [year, month, day] = dateString.split('T')[0].split('-');
@@ -461,6 +461,7 @@ async function viewClient(id) {
 
 // Servicos recorrentes do contrato
 async function showContractServices(contractId) {
+    const comp = App.get('contracts'); if (comp) { comp.showServices(contractId); return; }
     try {
         const [contract, services, contractServices] = await Promise.all([
             apiCall(`/contracts/${contractId}`),
@@ -1055,6 +1056,13 @@ function showPropertyForm() {
 
 // ===== CONTRACTS =====
 async function loadContracts() {
+    updatePageTitle('Contratos');
+    const comp = await App.loadComponent('contracts');
+    if (!comp) return;
+    if (!comp.contentContainer) comp.init();
+    await comp.renderList();
+    return; // ↓ código legado preservado — nunca executado após migração
+    // eslint-disable-next-line
     updatePageTitle('Meus Contratos');
 
     try {
@@ -1146,6 +1154,7 @@ async function loadContracts() {
 }
 
 async function showContractForm() {
+    const comp = App.get('contracts'); if (comp) { comp.showForm(); return; }
     const units = await apiCall('/units');
     const tenants = await apiCall('/tenants');
 
@@ -1233,6 +1242,7 @@ async function showContractForm() {
 
 // Editar/Renovar Contrato
 async function showEditContractForm(contractId) {
+    const comp = App.get('contracts'); if (comp) { comp.showEditForm(contractId); return; }
     try {
         const contract = await apiCall(`/contracts/${contractId}`);
         
@@ -2896,11 +2906,8 @@ window.openModal = openModal;
 window.toggleSidebar = toggleSidebar;
 window.showAddClientUserForm = showAddClientUserForm;
 window.editClient = editClient;
-window.cancelContractService = cancelContractService;
+// cancelContractService, showContractForm, showEditContractForm, showContractServices → migrados para ContractsComponent
 window.viewClient = viewClient;
-window.showContractForm = showContractForm;
-window.showEditContractForm = showEditContractForm;
-window.showContractServices = showContractServices;
 window.showCreateServiceForm = showCreateServiceForm;
 window.showAdjustChargeForm = showAdjustChargeForm;
 window.voidCharge = voidCharge;
