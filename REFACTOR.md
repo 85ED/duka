@@ -289,26 +289,27 @@ async function loadTenants() {
 
 ---
 
-# 📌 STATUS: 3/11 Componentes (27%)
+# 📌 STATUS: 4/11 Componentes (36%)
 
 ```
-✅ 3 completos   → Tenants (modelo de referência), Contracts, Units
-⏳ 8 pendentes   → Escalonados em 3 fases por complexidade
+✅ 4 completos   → Tenants (modelo de referência), Contracts, Units, Enterprises
+⏳ 7 pendentes   → Escalonados em 3 fases por complexidade
 ```
 
 ---
 
 # 📋 Telas a Refatorar (Ordem Recomendada)
 
-## ✅ CONCLUÍDO (3/11)
+## ✅ CONCLUÍDO (4/11)
 - ✔ **Tenants** - Modelo de referência já implementado
 - ✔ **Contracts** - CRUD completo + Serviços vinculados
 - ✔ **Units** - CRUD + badges DS v2 + empty state estruturado
+- ✔ **Enterprises** - CRUD + card-title + empty state estruturado
 
 ## ⏳ PHASE 1: CRUD Simples (4/11)
 - ✔ ~~**Units** (Unidades)~~
-- ◾ **Enterprises** (Empresas) ← PRÓXIMO
-- ⬜ **Properties** (Propriedades - legado)
+- ✔ ~~**Enterprises** (Empresas)~~
+- ◾ **Properties** (Propriedades - legado) ← PRÓXIMO
 
 ## ⏳ PHASE 2: Complexidade Média (6/11)
 - ⬜ **Charges** (com lógica de status)
@@ -582,12 +583,18 @@ App.register('[componente]', [Componente]Component);
   - `card-title` no identificador, `card-subtitle` no empreendimento, `charge-amount` no aluguel
   - Empty state estruturado com `.empty-icon + .empty-title + .empty-text`
   - UX writing: "Tá guardado! Unidade atualizada."
+- ✅ **Enterprises** (Empreendimentos) — `/public/components/enterprises.js`
+  - CRUD completo (criar, editar empreendimento)
+  - `card-title` no nome, `card-subtitle` no endereço
+  - "Ver Unidades" mantém `data-action="view-enterprise"` → handler global em script.js chama `loadUnits(id)`
+  - Empty state estruturado com `.empty-icon + .empty-title + .empty-text`
+  - UX writing: "Tá guardado! Empreendimento atualizado."
 
 ### Fase 1: Componentes Pequenos (Esta semana)
 
 1. ✅ **Units** (~180 linhas, CRUD simples)
-2. ◾ **Enterprises** (~150 linhas, CRUD simples) - PRÓXIMO
-3. ◾ **Properties** (~200 linhas, legado)
+2. ✅ **Enterprises** (~150 linhas, CRUD simples)
+3. ◾ **Properties** (~200 linhas, legado) - PRÓXIMO
 
 ### Fase 2: Componentes Médios (Próxima semana)
 

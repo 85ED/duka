@@ -2505,7 +2505,12 @@ function showEditSystemUserForm(userId, currentName, currentEmail, currentRole) 
 // ===== ENTERPRISES (EMPREENDIMENTOS) =====
 async function loadEnterprises() {
     updatePageTitle('Empreendimentos');
-
+    const comp = await App.loadComponent('enterprises');
+    if (!comp) return;
+    if (!comp.contentContainer) comp.init();
+    await comp.renderList();
+    return; // ↓ código legado preservado — nunca executado após migração
+    // eslint-disable-next-line no-unreachable
     try {
         const enterprises = await apiCall('/enterprises');
 
