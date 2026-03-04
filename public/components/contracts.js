@@ -95,9 +95,9 @@ const ContractsComponent = {
                     }
 
                     html += `<tr>
-                        <td data-label="Local"><strong>${location}</strong></td>
-                        <td data-label="Inquilino">${c.tenant_name}</td>
-                        <td data-label="Valor">${formatCurrency(c.rent_amount)}</td>
+                        <td data-label="Local"><strong class="card-title">${location}</strong></td>
+                        <td data-label="Inquilino" class="card-subtitle">${c.tenant_name}</td>
+                        <td data-label="Valor"><span class="charge-amount">${formatCurrency(c.rent_amount)}</span></td>
                         <td data-label="Permanência">${permanencia}${alertaReajuste}</td>
                         <td data-label="Vigência">
                             ${formatDate(c.start_date)} até ${c.end_date ? formatDate(c.end_date) : '—'}
@@ -215,13 +215,15 @@ const ContractsComponent = {
             let statusContrato = 'Vigente';
 
             if (!fim) {
-                statusContrato = '<i class="fa-solid fa-infinity"></i> Vigente por prazo indeterminado';
+                statusContrato = '<span class="badge badge-success"><i class="fa-solid fa-infinity"></i> Indeterminado</span>';
             } else if (fim < hoje) {
-                statusContrato = '<i class="fa-solid fa-infinity"></i> Vigente por prazo indeterminado (convertido automaticamente)';
+                statusContrato = '<span class="badge badge-success"><i class="fa-solid fa-infinity"></i> Indeterminado (auto)</span>';
             } else {
                 const diasAte = Math.floor((fim - hoje) / (24 * 60 * 60 * 1000));
                 if (diasAte < 90) {
-                    statusContrato = `<i class="fa-regular fa-clock"></i> Vence em ${diasAte} dias`;
+                    statusContrato = `<span class="badge badge-warning"><i class="fa-regular fa-clock"></i> Vence em ${diasAte} dias</span>`;
+                } else {
+                    statusContrato = '<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Vigente</span>';
                 }
             }
 
@@ -301,7 +303,12 @@ const ContractsComponent = {
                 apiCall(`${this.baseUrl}/${contractId}/services`)
             ]);
 
-            let listHtml = '<p class="empty-state">Nenhum serviço ativo</p>';
+            let listHtml = `
+                <div class="empty-state">
+                    <span class="empty-icon" aria-hidden="true">🛠️</span>
+                    <p class="empty-title">Nenhum serviço ativo</p>
+                    <p class="empty-text">Use o formulário abaixo para adicionar um serviço a este contrato.</p>
+                </div>`;
             if (contractServices.length > 0) {
                 listHtml  = '<table class="table">';
                 listHtml += '<thead><tr><th>Serviço</th><th>Valor</th><th>Início</th><th>Status</th><th>Ações</th></tr></thead>';
@@ -406,7 +413,7 @@ const ContractsComponent = {
             lateFeePencent:   parseFloat(document.getElementById('edit-late-fee-percent').value)
         });
         closeModal();
-        showToast('Contrato atualizado com sucesso!', 'success');
+        showToast('Tá guardado! Contrato atualizado.', 'success');
         await this.renderList();
     },
 

@@ -58,10 +58,10 @@ const TenantsComponent = {
                 
                 tenants.forEach(t => {
                     html += `<tr>
-                        <td data-label="Nome"><strong>${t.name}</strong></td>
-                        <td data-label="Documento">${t.document || '-'}</td>
-                        <td data-label="Email">${t.email || '-'}</td>
-                        <td data-label="Telefone">${t.phone || '-'}</td>
+                        <td data-label="Nome"><strong class="card-title">${t.name}</strong></td>
+                        <td data-label="Documento" class="card-subtitle">${t.document || '-'}</td>
+                        <td data-label="Email" class="card-subtitle">${t.email || '-'}</td>
+                        <td data-label="Telefone" class="card-subtitle">${t.phone || '-'}</td>
                         <td data-label="Ações" class="table-actions td-actions">
                             <button class="btn btn-sm btn-secondary" data-component="tenants" data-action="edit" data-id="${t.id}">Editar</button>
                         </td>
