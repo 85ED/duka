@@ -94,12 +94,14 @@ class Dashboard {
             );
 
             let unpaidByEndTotalCents = 0n;
+            let totalBilledChargesCents = 0n;
             const unpaidByContract = new Map();
 
             chargesMonth.forEach(ch => {
                 const total = rules.parseToCents(ch.total_amount || 0);
                 const paid = rules.parseToCents(ch.paid_by_end || 0);
                 const unpaid = total - paid > 0n ? total - paid : 0n;
+                totalBilledChargesCents += total;
                 if (unpaid > 0n) {
                     unpaidByEndTotalCents += unpaid;
                     const prev = unpaidByContract.get(ch.contract_id) || 0n;
@@ -107,8 +109,11 @@ class Dashboard {
                 }
             });
 
+            // Usa o total real cobrado (aluguel + serviços) como denominador,
+            // evitando que serviços adicionais causem % > 100
+            const totalBilledChargesMes = rules.centsToNumber(totalBilledChargesCents);
             const inadimplenciaMes = rules.calcInadimplenciaMes(
-                faturamentoMes,
+                totalBilledChargesMes || faturamentoMes,
                 rules.centsToNumber(unpaidByEndTotalCents)
             );
 
