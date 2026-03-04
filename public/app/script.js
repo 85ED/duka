@@ -2594,7 +2594,12 @@ function showEnterpriseForm(enterprise = null) {
 // ===== UNITS (UNIDADES) =====
 async function loadUnits(enterpriseId = null) {
     updatePageTitle('Unidades');
-
+    const comp = await App.loadComponent('units');
+    if (!comp) return;
+    if (!comp.contentContainer) comp.init();
+    await comp.renderList(enterpriseId);
+    return; // ↓ código legado preservado — nunca executado após migração
+    // eslint-disable-next-line no-unreachable
     try {
         let url = '/units';
         if (enterpriseId) url += `?enterpriseId=${enterpriseId}`;

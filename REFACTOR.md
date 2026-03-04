@@ -289,24 +289,25 @@ async function loadTenants() {
 
 ---
 
-# 📌 STATUS: 2/11 Componentes (18%)
+# 📌 STATUS: 3/11 Componentes (27%)
 
 ```
-✅ 2 completos   → Tenants (modelo de referência), Contracts
-⏳ 9 pendentes   → Escalonados em 3 fases por complexidade
+✅ 3 completos   → Tenants (modelo de referência), Contracts, Units
+⏳ 8 pendentes   → Escalonados em 3 fases por complexidade
 ```
 
 ---
 
 # 📋 Telas a Refatorar (Ordem Recomendada)
 
-## ✅ CONCLUÍDO (2/11)
+## ✅ CONCLUÍDO (3/11)
 - ✔ **Tenants** - Modelo de referência já implementado
 - ✔ **Contracts** - CRUD completo + Serviços vinculados
+- ✔ **Units** - CRUD + badges DS v2 + empty state estruturado
 
 ## ⏳ PHASE 1: CRUD Simples (4/11)
-- ◾ **Units** (Unidades) ← PRÓXIMO
-- ⬜ **Enterprises** (Empresas)
+- ✔ ~~**Units** (Unidades)~~
+- ◾ **Enterprises** (Empresas) ← PRÓXIMO
 - ⬜ **Properties** (Propriedades - legado)
 
 ## ⏳ PHASE 2: Complexidade Média (6/11)
@@ -571,14 +572,21 @@ App.register('[componente]', [Componente]Component);
 - ✅ **Contracts** (Contratos) — `/public/components/contracts.js`
   - CRUD completo (criar, editar contrato)
   - Submodal de serviços vinculados ao contrato
-  - Zero inline styles — usa `badge-success/pending/overdue`, `doc-link`, `table-actions`
+  - Zero inline styles — usa `badge-success/warning/danger`, `doc-link`, `table-actions`
   - `formatCurrency` e `formatDate` agora exportados de `script.js`
   - Event delegation: lista → `#content` | formulários/modal → `#modal-body`
+- ✅ **Units** (Unidades) — `/public/components/units.js`
+  - CRUD completo (criar, editar unidade)
+  - Filtro por `enterpriseId` preservado (`loadUnits(id)` → `renderList(id)`)
+  - Badges DS v2: `badge-gray/success/danger/warning` para vacant/occupied/overdue/expiring
+  - `card-title` no identificador, `card-subtitle` no empreendimento, `charge-amount` no aluguel
+  - Empty state estruturado com `.empty-icon + .empty-title + .empty-text`
+  - UX writing: "Tá guardado! Unidade atualizada."
 
 ### Fase 1: Componentes Pequenos (Esta semana)
 
-1. ◾ **Units** (~180 linhas, CRUD simples) - PRÓXIMO
-2. ◾ **Enterprises** (~150 linhas, CRUD simples)
+1. ✅ **Units** (~180 linhas, CRUD simples)
+2. ◾ **Enterprises** (~150 linhas, CRUD simples) - PRÓXIMO
 3. ◾ **Properties** (~200 linhas, legado)
 
 ### Fase 2: Componentes Médios (Próxima semana)
