@@ -44,7 +44,13 @@ const TenantsComponent = {
             html += '<div class="card-body">';
 
             if (tenants.length === 0) {
-                html += '<p class="empty-state">Nenhum inquilino cadastrado</p>';
+                html += `
+                    <div class="empty-state">
+                        <span class="empty-icon" aria-hidden="true">👥</span>
+                        <p class="empty-title">Sem inquilinos ainda</p>
+                        <p class="empty-text">Adicione seus moradores para gerenciar contratos e cobranças.</p>
+                        <button class="btn btn-primary btn-sm" data-component="tenants" data-action="add">+ Adicionar inquilino</button>
+                    </div>`;
             } else {
                 html += '<table class="table">';
                 html += '<thead><tr><th>Nome</th><th>Documento</th><th>Email</th><th>Telefone</th><th>Ações</th></tr></thead>';
@@ -56,7 +62,7 @@ const TenantsComponent = {
                         <td data-label="Documento">${t.document || '-'}</td>
                         <td data-label="Email">${t.email || '-'}</td>
                         <td data-label="Telefone">${t.phone || '-'}</td>
-                        <td data-label="Ações" class="table-actions">
+                        <td data-label="Ações" class="table-actions td-actions">
                             <button class="btn btn-sm btn-secondary" data-component="tenants" data-action="edit" data-id="${t.id}">Editar</button>
                         </td>
                     </tr>`;

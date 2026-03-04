@@ -731,130 +731,166 @@ Agora você pode escalar para:
 
 ---
 
-# 🎨 INTEGRAÇÃO CSS GLOBAL (Nova Fase)
+# 🎨 INTEGRAÇÃO CSS — Design System v2 (Mobile-First)
 
-## Status: ✅ Design System Entregue e Integrado
+## Status: ✅ Design System v2 Ativo (04/03/2026)
 
-O **Đuka Design System** foi criado e está ativo. O arquivo de referência é:
+**Fonte da verdade visual:** [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md)
+
+### Ordem de carregamento de CSS (`index.html`)
 
 ```
-public/app/duka-design-system.css   ← CSS ÚNICO (usar ESTE)
-public/app/style.css                ← DEPRECADO (não tocar, remover gradualmente)
-public/app/style-responsive.css     ← DEPRECADO (não tocar, remover gradualmente)
+public/app/tokens.css          ← v2: VARIÁVEIS (carregar primeiro — sempre)
+public/app/style-responsive.css  ← LEGADO: tabelas responsivas (data-label) — manter até migração completa
+public/app/duka-design-system.css ← LEGADO: bridge — usar apenas o que v2 não cobre ainda
+public/app/components-v2.css   ← v2: COMPONENTES (carrega por último — prevalece sobre legado)
 ```
 
-**Documentação gerada:**
-- [CSS-GUIDE.md](./CSS-GUIDE.md) — Todas as classes, exemplos e uso
-- [IMPLEMENTACAO.md](./IMPLEMENTACAO.md) — Passo a passo para refatorar cada tela
+**Regra:** quando houver conflito de classes, `components-v2.css` vence.
 
 ---
 
-## 🎯 Regra de Ouro CSS
+## 🎯 Regras de Ouro CSS (v2)
 
-> **Ao refatorar qualquer tela/componente, usar APENAS classes do `duka-design-system.css`.**
->
-> ❌ NUNCA inline `style="..."`  
-> ❌ NUNCA criar CSS novo em JS  
-> ✅ SEMPRE consultar [CSS-GUIDE.md](./CSS-GUIDE.md) antes de criar HTML
+> **Fonte única de verdade: [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md)**
+
+```
+❌ NUNCA  style="..."  (inline)
+❌ NUNCA  cores hardcoded  (#3B82F6, rgb(...))
+❌ NUNCA  tamanhos hardcoded  (16px, 1.5rem)
+❌ NUNCA  criar nova classe sem checar tokens.css e components-v2.css
+✅ SEMPRE  var(--primary-600), var(--text-lg), var(--space-4)
+✅ SEMPRE  classes semânticas do components-v2.css
+✅ SEMPRE  mobile-first: base mobile → @media (min-width: 640px) → 1024px
+```
 
 ---
 
-## 📋 Nomenclatura Obrigatória (Design System)
+## 📦 Arquivos do Design System v2
 
-| Tipo | Classe Correta | Errado (não usar) |
+| Arquivo | Caminho | Uso |
 |---|---|---|
-| Botão pequeno | `btn-sm` | `btn-small` |
-| Descrição no card | `card-header-description` | `card-header--description` |
-| Ações na tabela | `table-actions` | `td-actions` |
-| Estado vazio | `empty-state` | custom |
-| Botão check | `btn-check` | custom |
-| Pago | `check-paid` | custom |
-| Badge pago | `badge badge-success` | custom |
-| Badge pendente | `badge badge-pending` | custom |
-| Badge atrasado | `badge badge-overdue` | custom |
+| Bíblia visual | `DESIGN_SYSTEM.md` | Leia antes de qualquer decisão visual |
+| Variáveis CSS | `public/app/tokens.css` | `var(--primary-600)`, `var(--space-4)`, etc. |
+| Componentes v2 | `public/app/components-v2.css` | `.badge-success`, `.metric-card`, `.empty-state`, etc. |
+| Legado (manter) | `public/app/style-responsive.css` | Tabelas `data-label` no mobile |
+| Legado (deprecar) | `public/app/duka-design-system.css` | Bridge — remover quando todas as telas migrarem |
 
 ---
 
-## 🧱 Estrutura HTML Padrão de Cada Tela
+## 📋 Nomenclatura Obrigatória (v2)
+
+| Tipo | Classe v2 (usar) | Legado (não criar mais) |
+|---|---|---|
+| Badge pago / sucesso | `badge badge-success` | — |
+| Badge pendente / aviso | `badge badge-warning` | `badge-pending` |
+| Badge atrasado / perigo | `badge badge-danger` | `badge-overdue` |
+| Badge neutro | `badge badge-gray` | — |
+| Botão pequeno | `btn btn-sm` | `btn-small` |
+| Botão full width | `btn btn-full` | — |
+| Estado vazio estruturado | `.empty-state > .empty-icon + .empty-title + .empty-text` | `<p class="empty-state">` simples |
+| Métrica grande | `metric-card > metric-label + metric-value` | — |
+| Ações na tabela | `table-actions td-actions` (ambas para mobile) | somente `td-actions` |
+| Link documento | `doc-link` | inline style |
+| Campo somente-leitura | `input[readonly]` (CSS nativo via tokens) | `style="background: ..."` |
+| Texto secundário | `text-secondary` | inline `color` |
+
+---
+
+## 🧱 Template HTML v2 de Cada Tela
 
 ```javascript
-// ✅ PADRÃO OBRIGATÓRIO para todas as telas
+// ✅ PADRÃO OBRIGATÓRIO – Tela com lista
 let html = `
     <div class="card">
         <div class="card-header">
             <h2>Título da Tela</h2>
             <small class="card-header-description">Descrição opcional</small>
             <button class="btn btn-primary btn-sm"
-                    data-component="nome"
-                    data-action="add">
-                + Novo
+                    data-component="nome" data-action="add">
+                + Adicionar [item]
             </button>
         </div>
         <div class="card-body">
             <table class="table">
-                <thead>
-                    <tr>
-                        <th>Coluna 1</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>Coluna</th><th>Ações</th></tr></thead>
                 <tbody>
                     <tr>
-                        <td data-label="Coluna 1">valor</td>
-                        <td class="table-actions">
+                        <td data-label="Coluna">valor</td>
+                        <td class="table-actions td-actions">
                             <button class="btn btn-sm btn-secondary"
-                                    data-component="nome"
-                                    data-action="edit"
-                                    data-id="${item.id}">
-                                Editar
-                            </button>
+                                    data-component="nome" data-action="edit"
+                                    data-id="${item.id}">Editar</button>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
-    </div>
-`;
+    </div>`;
+
+// ✅ PADRÃO OBRIGATÓRIO – Empty state
+let emptyHtml = `
+    <div class="empty-state">
+        <span class="empty-icon" aria-hidden="true">📋</span>
+        <p class="empty-title">Sem [itens] ainda</p>
+        <p class="empty-text">Adicione [itens] para começar.</p>
+        <button class="btn btn-primary btn-sm"
+                data-component="nome" data-action="add">
+            + Adicionar [item]
+        </button>
+    </div>`;
 ```
 
 ---
 
-## 🚀 Workflow por Tela (com Design System)
+## 📐 UX Writing Obrigatório (Português BR Natural)
 
-Para **cada nova tela** a refatorar, seguir esta ordem:
-
-1. Ler [IMPLEMENTACAO.md](./IMPLEMENTACAO.md) (passo a passo completo)
-2. Criar `/public/components/[nome].js`
-3. Usar o template de componente do IMPLEMENTACAO.md
-4. Usar **apenas** classes do `duka-design-system.css`
-5. Consultar [CSS-GUIDE.md](./CSS-GUIDE.md) para ver exemplos de cada componente
-6. Remover todos os inline styles que existirem
-7. Testar: desktop → tablet (768px) → mobile (375px)
-8. Commit por componente
-9. Voltar ao passo 1 para próxima tela
+| Contexto | ❌ Não usar | ✅ Usar |
+|---|---|---|
+| Empty state | "Nenhum registro encontrado" | "Sem [itens] ainda" |
+| Empty state | "Lista vazia" | "Tá tudo pago! 🎉" / "Nenhuma cobrança por aqui" |
+| Erro geral | "Erro ao processar requisição" | "Não conseguimos salvar. Tenta de novo?" |
+| Sucesso | "Operação realizada com sucesso" | "Tá guardado" / "Cobrança criada!" |
+| Botão criar | "Criar novo" | "Adicionar [item]" |
+| Botão cancelar | "Cancelar operação" | "Deixa pra depois" |
 
 ---
 
-## 📊 Status das Telas
+## 🚀 Workflow de Refatoração por Tela (v2)
 
-### ✅ Piloto — Tenants (Concluído + CSS Atualizado)
+Para cada tela pendente, seguir esta ordem:
 
-- Componente extraído em `/public/components/tenants.js`
-- Classes corrigidas para o design system:
-  - `btn-small` → `btn-sm`
-  - `card-header--description` → `card-header-description`
-  - `td-actions` → `table-actions`
+1. Ler [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md) (fonte da verdade)
+2. Ler `public/app/tokens.css` (variáveis disponíveis)
+3. Ler `public/app/components-v2.css` (classes disponíveis)
+4. Criar `/public/components/[nome].js` baseado em `tenants.js` como modelo
+5. Zero inline styles — usar APENAS variáveis de `tokens.css` + classes de `components-v2.css`
+6. Empty states com estrutura completa (`.empty-icon + .empty-title + .empty-text`)
+7. UX writing em português BR natural (ver tabela acima)
+8. Testar: mobile 375px → tablet 768px → desktop 1280px (touch targets ≥ 48px)
+9. Commit por componente
+10. Atualizar tabela de status abaixo
 
-### ⏳ Phase 1 (PRÓXIMAS — seguir IMPLEMENTACAO.md)
+---
+
+## 📊 Status das Telas (CSS v2)
+
+### ✅ Concluído
+
+| Tela | Arquivo | CSS v2 |
+|---|---|---|
+| Tenants | `/public/components/tenants.js` | ✅ empty-state estruturado, tokens v2 |
+| Contracts | `/public/components/contracts.js` | ✅ badge-warning/danger, empty-state, tokens v2 |
+
+### ⏳ Phase 1 — CRUD Simples
 
 | Tela | Arquivo | Status |
 |---|---|---|
-| Contracts | `/public/components/contracts.js` | ✅ Concluído |
-| Units | `/public/components/units.js` | ⬜ Pendente |
+| Units | `/public/components/units.js` | ⬜ Pendente ← PRÓXIMO |
 | Enterprises | `/public/components/enterprises.js` | ⬜ Pendente |
 | Properties | `/public/components/properties.js` | ⬜ Pendente |
 
-### ⏳ Phase 2
+### ⏳ Phase 2 — Complexidade Média
 
 | Tela | Arquivo | Status |
 |---|---|---|
@@ -865,7 +901,7 @@ Para **cada nova tela** a refatorar, seguir esta ordem:
 | Partners | `/public/components/partners.js` | ⬜ Pendente |
 | Clients | `/public/components/clients.js` | ⬜ Pendente |
 
-### ⏳ Phase 3
+### ⏳ Phase 3 — Complexa
 
 | Tela | Arquivo | Status |
 |---|---|---|
@@ -873,51 +909,60 @@ Para **cada nova tela** a refatorar, seguir esta ordem:
 
 ---
 
-## 🔁 Prompt Genérico para Refatorar Próxima Tela
-
-Ao pedir para a IA refatorar uma tela, usar:
+## 🔁 Prompt Genérico para Próxima Tela
 
 ```
-Refatore a tela de [NOME] do sistema Đuka.
+Estamos seguindo rigorosamente o documento REFACTOR.md como fonte única de verdade.
+1. Leia o REFACTOR.md.
+2. Identifique qual foi a última tela refatorada.
+3. Selecione automaticamente a próxima tela pendente na ordem definida.
+4. Refatore apenas essa tela.
+5. Atualize o REFACTOR.md marcando-a como concluída.
 
-Contexto:
-- Leia o REFACTOR.md, CSS-GUIDE.md e IMPLEMENTACAO.md do projeto
-- O arquivo principal é public/app/script.js (~2900 linhas)
-- Design System: public/app/duka-design-system.css (ÚNICO CSS a usar)
-- Referência: public/components/tenants.js (componente piloto já feito)
+Regras obrigatórias (não violar):
+- Não alterar arquitetura, backend, layout, login, index.html.
+- Não adicionar novos <script>.
+- Não usar variáveis globais, window.*, document.addEventListener global.
+- Usar event delegation dentro de #content.
+- Seguir exatamente o padrão de TenantsComponent.
+- Usar ES Modules com import explícito.
+- Registrar via App.register('nome', NomeComponent).
+- renderList() deve garantir init().
+- Manter comportamento idêntico ao atual.
+- Substituir no script.js apenas a função loadXXX correspondente.
 
-Tarefa:
-1. Identifique a função load[Nome]() e show[Nome]Form() em script.js
-2. Extraia para /public/components/[nome].js
-3. Use APENAS classes do duka-design-system.css (veja CSS-GUIDE.md)
-4. Remova todos os inline styles
-5. Siga o template exato do IMPLEMENTACAO.md
-6. Registre com App.register('[nome]', [Nome]Component)
-7. Atualize load[Nome]() em script.js para usar App.loadComponent('[nome]')
+CSS obrigatório (Design System v2):
+- Fonte da verdade visual: DESIGN_SYSTEM.md
+- Variáveis: public/app/tokens.css (var(--primary-600), var(--space-4), etc.)
+- Componentes: public/app/components-v2.css (classes usáveis)
+- ZERO inline styles
+- ZERO cores ou tamanhos hardcoded
+- Empty states com estrutura: .empty-state > .empty-icon + .empty-title + .empty-text + .btn
+- UX writing em português BR natural (ver tabela de UX Writing no REFACTOR.md)
+- Badges: badge-success / badge-warning / badge-danger / badge-gray
+- Mobile-first: touch target ≥ 48px em botões de ação
 
-Restrições:
-- NÃO criar CSS inline
-- NÃO criar novos arquivos CSS
-- NÃO alterar index.html
-- NÃO alterar lógica de backend
-- NÃO quebrar funcionalidade existente
+Entregar somente:
+1. Arquivo completo do novo componente.
+2. Trecho exato a substituir no script.js.
+3. Atualização objetiva do REFACTOR.md marcando como concluído. Nada além disso.
 ```
 
 ---
 
-## 📝 Checklist de Aceite por Tela
-
-Antes de considerar uma tela concluída:
+## 📝 Checklist de Aceite por Tela (v2)
 
 - [ ] Componente criado em `/public/components/`
-- [ ] Zero inline styles no HTML gerado
-- [ ] Todas as classes existem no `duka-design-system.css`
-- [ ] `load[Nome]()` em `script.js` atualizado para `App.loadComponent()`
-- [ ] Funcionalidade 100% preservada (form, CRUD, listagem)
-- [ ] Responsivo: testado em mobile (375px) e desktop
+- [ ] Zero inline `style="..."` no HTML gerado
+- [ ] Zero cores/tamanhos hardcoded (só `var(--...)`)
+- [ ] Empty state com `.empty-icon + .empty-title + .empty-text`
+- [ ] UX writing BR natural (sem "Nenhum resultado encontrado")
+- [ ] Badges usando `badge-success/warning/danger/gray` (não `pending/overdue`)
+- [ ] `load[Nome]()` em script.js → thin wrapper via `App.loadComponent()`
+- [ ] Funcionalidade 100% preservada
+- [ ] Testado em mobile 375px e desktop 1280px
 - [ ] Console sem erros
-- [ ] Tabela do status acima atualizada de ⬜ para ✅
+- [ ] Tabela de status acima atualizada de ⬜ para ✅
 
 ---
-
 

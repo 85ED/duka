@@ -47,7 +47,13 @@ const ContractsComponent = {
             html += '<div class="card-body">';
 
             if (contracts.length === 0) {
-                html += '<p class="empty-state">Nenhum contrato cadastrado</p>';
+                html += `
+                    <div class="empty-state">
+                        <span class="empty-icon" aria-hidden="true">📋</span>
+                        <p class="empty-title">Nenhum contrato por aqui</p>
+                        <p class="empty-text">Crie um contrato para começar a cobrar seu inquilino.</p>
+                        <button class="btn btn-primary btn-sm" data-component="contracts" data-action="add">+ Criar contrato</button>
+                    </div>`;
             } else {
                 html += '<table class="table">';
                 html += '<thead><tr><th>Local</th><th>Inquilino</th><th>Valor</th><th>Permanência</th><th>Início – Vigência</th><th>Ações</th></tr></thead>';
@@ -70,7 +76,7 @@ const ContractsComponent = {
                     }
 
                     const alertaReajuste = anos > 0
-                        ? ' <span class="badge badge-overdue"><i class="fa-solid fa-rotate"></i> Reajuste</span>'
+                        ? ' <span class="badge badge-danger"><i class="fa-solid fa-rotate"></i> Reajuste</span>'
                         : '';
 
                     let vigencia;
@@ -82,7 +88,7 @@ const ContractsComponent = {
                         if (diasAte < 0) {
                             vigencia = '<span class="badge badge-success"><i class="fa-solid fa-infinity"></i> Indeterminado</span>';
                         } else if (diasAte < 90) {
-                            vigencia = `<span class="badge badge-pending"><i class="fa-regular fa-clock"></i> ${diasAte} dias</span>`;
+                            vigencia = `<span class="badge badge-warning"><i class="fa-regular fa-clock"></i> ${diasAte} dias</span>`;
                         } else {
                             vigencia = '<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Vigente</span>';
                         }
@@ -304,7 +310,7 @@ const ContractsComponent = {
                     const valor = cs.price !== null ? cs.price : cs.default_price;
                     const statusBadge = cs.status === 'active'
                         ? '<span class="badge badge-success">Ativo</span>'
-                        : '<span class="badge badge-pending">Inativo</span>';
+                        : '<span class="badge badge-gray">Inativo</span>';
                     const cancelBtn = cs.status === 'active'
                         ? `<button class="btn btn-sm btn-secondary"
                                    data-action="cancel-service"
