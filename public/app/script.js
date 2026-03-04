@@ -2886,3 +2886,22 @@ document.addEventListener('DOMContentLoaded', () => {
 if (token && currentUser.id) {
     showApp();
 }
+
+// ===== EXPORT FUNCTIONS TO GLOBAL SCOPE =====
+// Exponha as funções para que sejam acessíveis via onclick handlers inline
+window.quickPay = quickPay;
+window.showChargeForm = showChargeForm;
+window.closeModal = closeModal;
+window.openModal = openModal;
+window.toggleSidebar = toggleSidebar;
+window.showAddClientUserForm = showAddClientUserForm;
+window.editClient = editClient;
+window.cancelContractService = cancelContractService;
+window.viewClient = viewClient;
+window.showContractForm = showContractForm;
+window.showEditContractForm = showEditContractForm;
+window.showContractServices = showContractServices;
+window.showCreateServiceForm = showCreateServiceForm;
+window.showAdjustChargeForm = showAdjustChargeForm;
+window.voidCharge = voidCharge;
+window.showExpenseForm = showExpenseForm;
