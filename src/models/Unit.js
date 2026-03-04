@@ -26,7 +26,7 @@ class Unit {
 
     static async findByEnterprise(enterpriseId, accountId) {
         const [rows] = await db.execute(
-            `SELECT u.*, 
+            `SELECT u.*, e.name as enterprise_name,
                     c.id as contract_id, c.status as contract_status, c.rent_amount, c.end_date,
                     t.name as tenant_name,
                     CASE 
@@ -39,6 +39,7 @@ class Unit {
                         ELSE 'occupied'
                     END as unit_status
              FROM units u
+             JOIN enterprises e ON u.enterprise_id = e.id AND e.deleted_at IS NULL
              LEFT JOIN contracts c ON u.id = c.unit_id AND c.status = 'active'
              LEFT JOIN tenants t ON c.tenant_id = t.id
              WHERE u.enterprise_id = ? AND u.account_id = ? AND u.deleted_at IS NULL

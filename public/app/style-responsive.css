@@ -157,6 +157,7 @@ body {
 
 /* ===== BUTTONS ===== */
 .btn {
+
     padding: 10px 16px;
     border: none;
     border-radius: 6px;
@@ -580,6 +581,16 @@ body {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
+}
+
+/* Célula de ações — flex horizontal no desktop */
+.td-actions {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 6px;
+    align-items: center;
+    justify-content: flex-start;
 }
 
 /* --- 4. VALORES MONETÁRIOS --- */

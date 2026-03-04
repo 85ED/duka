@@ -37,8 +37,10 @@ const TenantsComponent = {
 
             let html = '<div class="card">';
             html += '<div class="card-header">';
-            html += '<h2>Meus Inquilinos</h2>';
-            html += '<small class="card-header-description">Seus moradores. Guarde o nome, telefone e email para contatos importantes.</small>';
+            html += '<div>';
+            html += '<h2 class="card-title">Meus Inquilinos</h2>';
+            html += '<small class="card-subtitle">Seus moradores. Guarde o nome, telefone e email para contatos importantes.</small>';
+            html += '</div>';
             html += '<button class="btn btn-primary btn-sm" data-component="tenants" data-action="add">+ Novo Inquilino</button>';
             html += '</div>';
             html += '<div class="card-body">';
