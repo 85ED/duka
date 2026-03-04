@@ -1,12 +1,9 @@
 const db = require('../src/config/database');
 const Charge = require('../src/models/Charge');
-// We need to fetch active contracts directly or via Contract model? 
-// Let's use raw query here for batch processing efficiently or add method to Contract.
-// Raw query is fine for script.
 
 async function generateMonthlyCharges() {
     try {
-        console.log('Starting Automatic Charge Generation...');
+        console.log('[CRON] 🔄 Starting Automatic Charge Generation...');
 
         const connection = await db.getConnection();
 
@@ -16,11 +13,9 @@ async function generateMonthlyCharges() {
         const month = String(today.getMonth() + 1).padStart(2, '0');
         const referenceMonth = `${year}-${month}-01`;
 
-        console.log(`Reference Month: ${referenceMonth}`);
+        console.log(`[CRON] 📅 Reference Month: ${referenceMonth}`);
 
         // 2. Find Active Contracts that don't have a charge for this reference month
-        // We need to fetch account_id too to pass to Charge.create (or simpler: insert directly)
-        // Using Charge.create maintains logic (transaction + item rent).
         const [contracts] = await connection.execute(
             `SELECT c.id, c.account_id, c.rent_amount, c.due_day 
              FROM contracts c
@@ -34,11 +29,11 @@ async function generateMonthlyCharges() {
             [referenceMonth]
         );
 
-        console.log(`Found ${contracts.length} contracts needing charges.`);
+        console.log(`[CRON] 📊 Found ${contracts.length} contracts needing charges.`);
 
         if (contracts.length === 0) {
-            console.log('No charges to generate.');
-            process.exit(0);
+            console.log('[CRON] ✅ No charges to generate.');
+            return { success: true, generated: 0, errors: 0 };
         }
 
         let successCount = 0;
@@ -49,11 +44,11 @@ async function generateMonthlyCharges() {
 
         for (const contract of contracts) {
             try {
-            const preferredDay = contract.due_day || 10;
-            const safeDay = Math.min(preferredDay, maxDay);
-            const dueDate = `${year}-${month}-${String(safeDay).padStart(2, '0')}`;
+                const preferredDay = contract.due_day || 10;
+                const safeDay = Math.min(preferredDay, maxDay);
+                const dueDate = `${year}-${month}-${String(safeDay).padStart(2, '0')}`;
 
-                console.log(`Generating charge for Contract ${contract.id} with due day ${safeDay}...`);
+                console.log(`[CRON] 📝 Generating charge for Contract ${contract.id} with due day ${safeDay}...`);
 
                 await Charge.create({
                     accountId: contract.account_id,
@@ -64,17 +59,27 @@ async function generateMonthlyCharges() {
 
                 successCount++;
             } catch (err) {
-                console.error(`Failed for contract ${contract.id}:`, err);
+                console.error(`[CRON] ❌ Failed for contract ${contract.id}:`, err.message);
                 errorCount++;
             }
         }
 
-        console.log(`Job Finished. Success: ${successCount}, Errors: ${errorCount}`);
-        process.exit(0);
+        console.log(`[CRON] ✅ Job Finished. Success: ${successCount}, Errors: ${errorCount}`);
+        return { success: true, generated: successCount, errors: errorCount };
     } catch (error) {
-        console.error('Critical Error:', error);
-        process.exit(1);
+        console.error('[CRON] 🔴 Critical Error:', error.message);
+        return { success: false, error: error.message };
     }
 }
 
-generateMonthlyCharges();
+// Export for use in server.js or as standalone script
+module.exports = { generateMonthlyCharges };
+
+// If run directly as a script
+if (require.main === module) {
+    generateMonthlyCharges().then(() => {
+        process.exit(0);
+    }).catch(() => {
+        process.exit(1);
+    });
+}

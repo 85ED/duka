@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const cron = require('node-cron');
 require('express-async-errors');
 
 if (process.env.NODE_ENV !== 'production') {
@@ -10,6 +11,7 @@ if (process.env.NODE_ENV !== 'production') {
 const path = require('path');
 const app = express();
 const routes = require('./routes/api');
+const { generateMonthlyCharges } = require('../scripts/generate_charges');
 
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors());
@@ -53,3 +55,23 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`📁 Root folder: ${ROOT}`);
 });
+
+/* ========= CRON JOBS ========= */
+// Automatic monthly charge generation
+// Runs at 00:05 on the 1st day of each month
+console.log('⏰ Initializing cron jobs...');
+
+cron.schedule('5 0 1 * *', async () => {
+    console.log('\n🔔 CRON: Monthly charge generation triggered');
+    const result = await generateMonthlyCharges();
+    if (result.success) {
+        console.log(`✅ CRON: Generated ${result.generated} charges with ${result.errors} errors\n`);
+    } else {
+        console.log(`❌ CRON: Failed - ${result.error}\n`);
+    }
+}, {
+    scheduled: true,
+    timezone: 'America/Sao_Paulo'
+});
+
+console.log('✅ Cron jobs initialized: Monthly charges at 00:05 on 1st of month (SP timezone)');
