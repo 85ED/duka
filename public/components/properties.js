@@ -70,7 +70,7 @@ const PropertiesComponent = {
                     <div class="card-header">
                         <div>
                             <h2 class="card-title">Propriedades</h2>
-                            <small class="card-subtitle">Imóveis do sistema legado (property_id). Para novos cadastros, use Empresas → Unidades.</small>
+                            <small class="card-subtitle">Imóveis cadastrados no formato anterior. Para novos cadastros, use Empreendimentos e Unidades.</small>
                         </div>
                         <button class="btn btn-primary btn-sm"
                             data-component="properties"

@@ -1011,7 +1011,7 @@ async function loadContracts() {
     try {
         const contracts = await apiCall('/contracts');
 
-        let html = '<div class="card"><div class="card-header"><h2>Meus Contratos</h2><small style="color: var(--text-secondary); font-weight: normal;">Os aluguéis. Veja quanto tempo cada um mora, o valor e quando é hora de reajustar o preço.</small>';
+        let html = '<div class="card"><div class="card-header"><h2>Meus Contratos</h2><small style="color: var(--text-secondary); font-weight: normal;">Gerencie todos os aluguéis ativos. Veja o valor, as datas e os serviços de cada contrato. Encerre ou substitua um inquilino quando precisar.</small>';
         html += '<button class="btn btn-primary btn-small" onclick="showContractForm()">+ Novo Contrato</button></div>';
         html += '<div class="card-body">';
 
@@ -1533,7 +1533,7 @@ async function loadCharges() {
     try {
         const charges = await apiCall('/charges');
 
-        let html = '<div class="card"><div class="card-header"><h2>Cobranças do Mês</h2><small style="color: var(--text-secondary); font-weight: normal;">As faturas do mês. Marque quem pagou, quem está atrasado e veja o vencimento de cada um.</small>';
+        let html = '<div class="card"><div class="card-header"><h2>Cobranças do Mês</h2><small style="color: var(--text-secondary); font-weight: normal;">Controle os pagamentos do mês. Gere cobranças, registre recebimentos e identifique quem está em atraso.</small>';
         html += '<button class="btn btn-primary btn-small" onclick="showChargeForm()">+ Gerar Cobrança</button></div>';
         html += '<div class="card-body">';
 
@@ -2254,7 +2254,7 @@ async function showPartnerShareManagement() {
     try {
         const partners = await apiCall('/users/partners');
 
-        let html = '<div class="card"><div class="card-header"><h2>Meus Sócios</h2><small style="color: var(--text-secondary); font-weight: normal;">Selecione usuários existentes e defina sua participação nos lucros. O sistema calcula automaticamente.</small>';
+        let html = '<div class="card"><div class="card-header"><h2>Meus Sócios</h2><small style="color: var(--text-secondary); font-weight: normal;">Vincule colaboradores como sócios e defina o percentual de participação de cada um. O sistema calcula a distribuição dos lucros automaticamente.</small>';
         html += '<button class="btn btn-primary btn-small" onclick="showPartnerShareForm()">+ Adicionar Sócio</button></div>';
         html += '<div class="card-body">';
 
@@ -2358,7 +2358,7 @@ async function loadUsers() {
         const users = await apiCall('/users');
         allSystemUsers = users; // Armazenar globalmente
 
-        let html = '<div class="card"><div class="card-header"><h2>Todos os Usuários</h2><small style="color: var(--text-secondary); font-weight: normal;">Quem tem acesso ao sistema. Crie contas para assistentes ou gerenciadores de imóveis.</small></div>';
+        let html = '<div class="card"><div class="card-header"><h2>Todos os Usuários</h2><small style="color: var(--text-secondary); font-weight: normal;">Controle quem tem acesso à plataforma. Crie contas para colaboradores e defina o nível de permissão de cada um.</small></div>';
         html += '<div class="card-body">';
 
         if (users.length === 0) {
@@ -2457,7 +2457,7 @@ async function loadEnterprises() {
     try {
         const enterprises = await apiCall('/enterprises');
 
-        let html = '<div class="card"><div class="card-header"><h2>Meus Empreendimentos</h2><small style="color: var(--text-secondary); font-weight: normal;">Seus imóveis ou condomínios. Adicione um novo ou clique para editar os dados.</small>';
+        let html = '<div class="card"><div class="card-header"><h2>Meus Empreendimentos</h2><small style="color: var(--text-secondary); font-weight: normal;">Organize seus imóveis por empreendimento — prédios, condomínios ou conjuntos. Cada empreendimento agrupa as unidades que você administra.</small>';
         html += '<button class="btn btn-primary btn-small" data-action="add-enterprise">+ Novo Empreendimento</button></div>';
         html += '<div class="card-body">';
 
@@ -2555,7 +2555,7 @@ async function loadUnits(enterpriseId = null) {
         const units = await apiCall(url);
         const enterprises = await apiCall('/enterprises');
 
-        let html = '<div class="card"><div class="card-header"><h2>Minhas Unidades</h2><small style="color: var(--text-secondary); font-weight: normal;">Cada casa ou apartamento que você aluga. Veja quem mora em cada uma e quando o contrato termina.</small>';
+        let html = '<div class="card"><div class="card-header"><h2>Minhas Unidades</h2><small style="color: var(--text-secondary); font-weight: normal;">Cadastre e organize as unidades do seu portfólio. Veja o status de cada uma, quem está ocupando e libere unidades quando necessário.</small>';
         html += '<button class="btn btn-primary btn-small" data-action="add-unit">+ Nova Unidade</button></div>';
         html += '<div class="card-body">';
 

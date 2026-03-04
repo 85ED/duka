@@ -44,7 +44,7 @@ const UnitsComponent = {
                 <div class="card">
                     <div class="card-header">
                         <h2>Minhas Unidades</h2>
-                        <small class="card-subtitle">Cada casa ou apartamento que você aluga. Veja quem mora em cada uma e quando o contrato termina.</small>
+                        <small class="card-subtitle">Cadastre e organize as unidades do seu portfólio. Veja o status de cada uma, quem está ocupando e libere unidades quando necessário.</small>
                         <button class="btn btn-primary btn-sm" data-component="units" data-action="add">
                             + Nova Unidade
                         </button>

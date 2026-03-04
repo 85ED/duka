@@ -41,7 +41,7 @@ const ContractsComponent = {
             let html = '<div class="card">';
             html += '<div class="card-header">';
             html += '<h2>Meus Contratos</h2>';
-            html += '<small class="card-header-description">Os aluguéis. Veja quanto tempo cada um mora, o valor e quando é hora de reajustar o preço.</small>';
+            html += '<small class="card-header-description">Gerencie todos os aluguéis ativos. Veja o valor, as datas e os serviços de cada contrato. Encerre ou substitua um inquilino quando precisar.</small>';
             html += '<button class="btn btn-primary btn-sm" data-component="contracts" data-action="add">+ Novo Contrato</button>';
             html += '</div>';
             html += '<div class="card-body">';

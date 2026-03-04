@@ -32,7 +32,7 @@ const EnterprisesComponent = {
                 <div class="card">
                     <div class="card-header">
                         <h2>Meus Empreendimentos</h2>
-                        <small class="card-subtitle">Seus imóveis ou condomínios. Adicione um novo ou clique para editar os dados.</small>
+                        <small class="card-subtitle">Organize seus imóveis por empreendimento — prédios, condomínios ou conjuntos. Cada empreendimento agrupa as unidades que você administra.</small>
                         <button class="btn btn-primary btn-sm" data-component="enterprises" data-action="add">
                             + Novo Empreendimento
                         </button>
