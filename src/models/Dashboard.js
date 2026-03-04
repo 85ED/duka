@@ -35,6 +35,7 @@ class Dashboard {
                  FROM contracts c
                  JOIN tenants t ON c.tenant_id = t.id
                  WHERE c.account_id = ?
+                   AND c.status = 'active'
                    AND c.start_date <= ?
                    AND (c.end_date IS NULL OR c.end_date >= ?)`
                 , [accountId, yearEnd, yearStart]

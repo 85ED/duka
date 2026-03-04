@@ -7,6 +7,7 @@ const UnitsComponent = {
     baseUrl: '/units',
     contentContainer: null,
     eventListenersAttached: false,
+    modalListenersAttached: false,
 
     /**
      * Inicializa o componente
@@ -16,6 +17,10 @@ const UnitsComponent = {
         if (this.contentContainer && !this.eventListenersAttached) {
             this.attachEventListeners();
             this.eventListenersAttached = true;
+        }
+        if (!this.modalListenersAttached) {
+            this.attachModalListeners();
+            this.modalListenersAttached = true;
         }
     },
 
@@ -70,6 +75,12 @@ const UnitsComponent = {
                         <tbody>`;
 
                 units.forEach(u => {
+                    const liberarBtn = u.unit_status !== 'vacant' && u.contract_id
+                        ? `<button class="btn btn-sm btn-danger" data-component="units" data-action="release" data-id="${u.contract_id}" data-unit-name="${u.identifier}">
+                               <i class="fa-solid fa-door-open"></i> Liberar
+                           </button>`
+                        : '';
+
                     html += `<tr>
                         <td data-label="Empreendimento" class="card-subtitle">${u.enterprise_name}</td>
                         <td data-label="Unidade"><strong class="card-title">${u.identifier}</strong></td>
@@ -80,6 +91,7 @@ const UnitsComponent = {
                             <button class="btn btn-sm btn-secondary" data-component="units" data-action="edit" data-id="${u.id}">
                                 <i class="fa-solid fa-pen"></i> Editar
                             </button>
+                            ${liberarBtn}
                         </td>
                     </tr>`;
                 });
@@ -105,6 +117,63 @@ const UnitsComponent = {
             'expiring': '<span class="badge badge-warning">Vencendo</span>'
         };
         return badges[status] || badges['vacant'];
+    },
+
+    /**
+     * Modal de confirmação para liberar uma unidade (encerra o contrato ativo)
+     */
+    showReleaseForm(contractId, unitName) {
+        const form = `
+            <h2><i class="fa-solid fa-door-open"></i> Liberar Unidade</h2>
+            <p style="color:var(--gray-600); margin-bottom:20px;">
+                A unidade <strong>${unitName}</strong> será marcada como disponível.
+                O contrato será encerrado e movido para o histórico.
+            </p>
+            <form id="release-form" data-contract-id="${contractId}">
+                <div class="form-group">
+                    <label>Motivo do encerramento *</label>
+                    <div style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
+                        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:normal;">
+                            <input type="radio" name="release-reason" value="expired" required> Expirado — prazo chegou ao fim
+                        </label>
+                        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:normal;">
+                            <input type="radio" name="release-reason" value="cancelled"> Cancelado — acordo entre as partes
+                        </label>
+                        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:normal;">
+                            <input type="radio" name="release-reason" value="rescinded"> Rescindido — quebra contratual
+                        </label>
+                    </div>
+                </div>
+                <div class="form-actions" style="margin-top:24px;">
+                    <button type="button" class="btn btn-secondary" data-modal-cancel>Cancelar</button>
+                    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-door-open"></i> Confirmar liberação</button>
+                </div>
+            </form>`;
+        openModal(form);
+    },
+
+    /**
+     * Processa encerramento do contrato para liberar a unidade
+     */
+    async _handleReleaseSubmit(event) {
+        event.preventDefault();
+        const form = event.target;
+        const contractId = form.getAttribute('data-contract-id');
+        const reasonEl = form.querySelector('input[name="release-reason"]:checked');
+
+        if (!reasonEl) {
+            alert('Selecione o motivo do encerramento.');
+            return;
+        }
+
+        try {
+            await apiCall(`/contracts/${contractId}/terminate`, 'PATCH', { reason: reasonEl.value });
+            closeModal();
+            showToast('Unidade liberada! Contrato encerrado.', 'success');
+            await this.renderList();
+        } catch (error) {
+            alert('Erro: ' + error.message);
+        }
     },
 
     /**
@@ -154,7 +223,7 @@ const UnitsComponent = {
     },
 
     /**
-     * Processa submit do formulário (delegado via #content)
+     * Processa submit do formulário (delegado via #modal-body)
      */
     async _handleFormSubmit(event) {
         event.preventDefault();
@@ -184,16 +253,28 @@ const UnitsComponent = {
     },
 
     /**
-     * Event listeners com delegação em #content
+     * Event listeners de submit delegados via #modal-body
+     * (os formulários unit-form e release-form abrem dentro do modal)
      */
-    attachEventListeners() {
+    attachModalListeners() {
         const self = this;
-
-        this.contentContainer.addEventListener('submit', function(e) {
+        const modalBody = document.getElementById('modal-body');
+        if (!modalBody) return;
+        modalBody.addEventListener('submit', function(e) {
             if (e.target.id === 'unit-form') {
                 self._handleFormSubmit(e);
             }
+            if (e.target.id === 'release-form') {
+                self._handleReleaseSubmit(e);
+            }
         });
+    },
+
+    /**
+     * Event listeners de clique com delegação em #content
+     */
+    attachEventListeners() {
+        const self = this;
 
         this.contentContainer.addEventListener('click', function(e) {
             const btn = e.target.closest('[data-component="units"]');
@@ -212,6 +293,10 @@ const UnitsComponent = {
                     apiCall(`${self.baseUrl}/${id}`)
                         .then(u => self.showForm(u))
                         .catch(err => alert('Erro: ' + err.message));
+                    break;
+                case 'release':
+                    e.preventDefault();
+                    self.showReleaseForm(id, btn.getAttribute('data-unit-name'));
                     break;
             }
         });
