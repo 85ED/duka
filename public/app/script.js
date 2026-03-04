@@ -991,67 +991,10 @@ async function loadDashboard(selectedYear, selectedMonth) {
 
 // ===== PROPERTIES =====
 async function loadProperties() {
-    updatePageTitle('Propriedades');
-
-    try {
-        const properties = await apiCall('/properties');
-
-        let html = '<div class="card"><div class="card-header"><h2>Minhas Propriedades</h2>';
-        html += '<button class="btn btn-primary btn-small" data-action="add-property">+ Nova Propriedade</button></div>';
-        html += '<div class="card-body">';
-
-        if (properties.length === 0) {
-            html += '<p style="text-align: center; color: var(--text-secondary);">Nenhuma propriedade cadastrada</p>';
-        } else {
-            html += '<table class="table"><thead><tr><th>Endereço</th><th>Descrição</th><th>Ações</th></tr></thead><tbody>';
-            properties.forEach(p => {
-                html += `<tr><td data-label="Endereço">${p.address}</td><td data-label="Descrição">${p.description || '-'}</td><td data-label="Ações" class="td-actions">
-                    <button class="btn btn-small btn-secondary" data-action="edit-property" data-id="${p.id}">Editar</button>
-                </td></tr>`;
-            });
-            html += '</tbody></table>';
-        }
-
-        html += '</div></div>';
-        document.getElementById('content').innerHTML = html;
-    } catch (error) {
-        document.getElementById('content').innerHTML = `<div class="error-message show">${error.message}</div>`;
-    }
-}
-
-function showPropertyForm() {
-    const form = `<h2>Nova Propriedade</h2>
-        <form id="property-form">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Endereço *</label>
-                    <input type="text" id="prop-address" required>
-                </div>
-                <div class="form-group">
-                    <label>Descrição</label>
-                    <input type="text" id="prop-description">
-                </div>
-            </div>
-            <div class="form-actions">
-                <button type="button" class="btn btn-secondary">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Salvar</button>
-            </div>
-        </form>`;
-    openModal(form);
-
-    document.getElementById('property-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        try {
-            await apiCall('/properties', 'POST', {
-                address: document.getElementById('prop-address').value,
-                description: document.getElementById('prop-description').value
-            });
-            closeModal();
-            loadProperties();
-        } catch (error) {
-            alert('Erro: ' + error.message);
-        }
-    });
+    const comp = await App.loadComponent('properties');
+    if (!comp) return;
+    if (!comp.contentContainer) comp.init();
+    await comp.renderList();
 }
 
 // ===== CONTRACTS =====
@@ -2857,9 +2800,8 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'edit-unit': 
                 apiCall(`/units/${id}`).then(u => showUnitForm(u));
                 break;
-            // Properties (legacy)
-            case 'add-property': showPropertyForm(); break;
-            case 'edit-property': editProperty(parseInt(id)); break;
+            // Properties (legacy) — tratado pelo componente properties.js via data-component="properties"
+            // case 'add-property' e 'edit-property' obsoletos
             // Contracts
             case 'add-contract': showContractForm(); break;
             case 'edit-contract': editContract(parseInt(id)); break;

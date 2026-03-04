@@ -27,6 +27,30 @@ exports.listProperties = async (req, res) => {
     }
 };
 
+exports.getProperty = async (req, res) => {
+    try {
+        const property = await Property.findById(req.params.propertyId, req.user.accountId);
+        if (!property) return res.status(404).json({ error: 'Not found' });
+        res.json(property);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+exports.updateProperty = async (req, res) => {
+    try {
+        const { address, description } = req.body;
+        if (!address) return res.status(400).json({ error: 'address is required' });
+        const rows = await Property.update(req.params.propertyId, req.user.accountId, { address, description });
+        if (!rows) return res.status(404).json({ error: 'Not found' });
+        res.json({ message: 'Property updated' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
 // Tenant Controller
 exports.createTenant = async (req, res) => {
     try {

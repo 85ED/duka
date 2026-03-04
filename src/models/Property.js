@@ -24,6 +24,14 @@ class Property {
         );
         return rows[0];
     }
+
+    static async update(id, accountId, { address, description }) {
+        const [result] = await db.execute(
+            'UPDATE properties SET address = ?, description = ? WHERE id = ? AND account_id = ?',
+            [address, description || null, id, accountId]
+        );
+        return result.affectedRows;
+    }
 }
 
 module.exports = Property;

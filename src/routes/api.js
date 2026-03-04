@@ -60,6 +60,8 @@ router.delete('/units/:id', unitController.deleteUnit);
 // Properties & Tenants (mantido para compatibilidade)
 router.post('/properties', propertyController.createProperty);
 router.get('/properties', propertyController.listProperties);
+router.get('/properties/:propertyId', propertyController.getProperty);
+router.put('/properties/:propertyId', propertyController.updateProperty);
 	router.post('/tenants', propertyController.createTenant);
 	router.get('/tenants', propertyController.listTenants);
 
