@@ -51,8 +51,11 @@ class Contract {
     }
 
     // Helper to terminate a contract
-    static async terminate(id, accountId) {
-        return this.updateStatus(id, accountId, 'terminated');
+    static async terminate(id, accountId, reason = null) {
+        await db.execute(
+            'UPDATE contracts SET status = "terminated", termination_reason = ?, terminated_on = CURDATE() WHERE id = ? AND account_id = ? AND status = "active"',
+            [reason, id, accountId]
+        );
     }
 
     // Replace a tenant/contract with a new one

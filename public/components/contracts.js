@@ -46,76 +46,28 @@ const ContractsComponent = {
             html += '</div>';
             html += '<div class="card-body">';
 
-            if (contracts.length === 0) {
+            const activeContracts = contracts.filter(c => c.status === 'active');
+            const historicalContracts = contracts.filter(c => c.status !== 'active');
+
+            if (activeContracts.length === 0) {
                 html += `
                     <div class="empty-state">
                         <span class="empty-icon" aria-hidden="true">📋</span>
-                        <p class="empty-title">Nenhum contrato por aqui</p>
+                        <p class="empty-title">Nenhum contrato ativo</p>
                         <p class="empty-text">Crie um contrato para começar a cobrar seu inquilino.</p>
                         <button class="btn btn-primary btn-sm" data-component="contracts" data-action="add">+ Criar contrato</button>
                     </div>`;
             } else {
-                html += '<table class="table">';
-                html += '<thead><tr><th>Local</th><th>Inquilino</th><th>Valor</th><th>Permanência</th><th>Início – Vigência</th><th>Ações</th></tr></thead>';
-                html += '<tbody>';
+                html += this._renderContractRows(activeContracts, false);
+            }
 
-                contracts.forEach(c => {
-                    const location = c.location_name || c.property_address || '-';
-                    const inicio = new Date(c.start_date);
-                    const agora = new Date();
-
-                    const anos = Math.floor((agora - inicio) / (365.25 * 24 * 60 * 60 * 1000));
-                    const meses = Math.floor(((agora - inicio) % (365.25 * 24 * 60 * 60 * 1000)) / (30 * 24 * 60 * 60 * 1000));
-                    let permanencia;
-                    if (anos > 0) {
-                        permanencia = `${anos} ano${anos > 1 ? 's' : ''} ${meses}m`;
-                    } else if (meses > 0) {
-                        permanencia = `${meses} mês${meses > 1 ? 'es' : ''}`;
-                    } else {
-                        permanencia = 'Novo';
-                    }
-
-                    const alertaReajuste = anos > 0
-                        ? ' <span class="badge badge-danger"><i class="fa-solid fa-rotate"></i> Reajuste</span>'
-                        : '';
-
-                    let vigencia;
-                    if (!c.end_date) {
-                        vigencia = '<span class="badge badge-success"><i class="fa-solid fa-infinity"></i> Indeterminado</span>';
-                    } else {
-                        const fim = new Date(c.end_date);
-                        const diasAte = Math.floor((fim - agora) / (24 * 60 * 60 * 1000));
-                        if (diasAte < 0) {
-                            vigencia = '<span class="badge badge-success"><i class="fa-solid fa-infinity"></i> Indeterminado</span>';
-                        } else if (diasAte < 90) {
-                            vigencia = `<span class="badge badge-warning"><i class="fa-regular fa-clock"></i> ${diasAte} dias</span>`;
-                        } else {
-                            vigencia = '<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Vigente</span>';
-                        }
-                    }
-
-                    html += `<tr>
-                        <td data-label="Local"><strong class="card-title">${location}</strong></td>
-                        <td data-label="Inquilino" class="card-subtitle">${c.tenant_name}</td>
-                        <td data-label="Valor"><span class="charge-amount">${formatCurrency(c.rent_amount)}</span></td>
-                        <td data-label="Permanência">${permanencia}${alertaReajuste}</td>
-                        <td data-label="Vigência">
-                            ${formatDate(c.start_date)} até ${c.end_date ? formatDate(c.end_date) : '—'}
-                            <br><small>${vigencia}</small>
-                        </td>
-                        <td data-label="Ações" class="table-actions td-actions">
-                            ${c.contract_url ? `<a href="${c.contract_url}" target="_blank" class="btn btn-sm btn-primary doc-link"><i class="fa-solid fa-file-pdf"></i> PDF</a>` : ''}
-                            <button class="btn btn-sm btn-secondary" data-component="contracts" data-action="edit" data-id="${c.id}">
-                                <i class="fa-solid fa-pen"></i> Editar
-                            </button>
-                            <button class="btn btn-sm btn-secondary" data-component="contracts" data-action="services" data-id="${c.id}">
-                                Serviços
-                            </button>
-                        </td>
-                    </tr>`;
-                });
-
-                html += '</tbody></table>';
+            if (historicalContracts.length > 0) {
+                html += `
+                    <hr style="margin: 24px 0; border-color: var(--gray-200);">
+                    <h3 style="font-size: var(--text-sm); font-weight: var(--font-semibold); color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Histórico de contratos encerrados
+                    </h3>`;
+                html += this._renderContractRows(historicalContracts, true);
             }
 
             html += '</div></div>';
@@ -123,6 +75,145 @@ const ContractsComponent = {
         } catch (error) {
             this.contentContainer.innerHTML = `<div class="error-message show">${error.message}</div>`;
         }
+    },
+
+    /**
+     * Gera HTML da tabela de contratos (ativo ou histórico).
+     */
+    _renderContractRows: function(contracts, isHistory) {
+        const agora = new Date();
+        const opacity = isHistory ? ' style="opacity:0.65"' : '';
+
+        let html = `<table class="table"${opacity}>`;
+        html += '<thead><tr><th>Local</th><th>Inquilino</th><th>Valor</th><th>Permanência</th><th>Início – Vigência</th><th>Ações</th></tr></thead>';
+        html += '<tbody>';
+
+        contracts.forEach(c => {
+            const location = c.location_name || c.property_address || '-';
+            const inicio = new Date(c.start_date);
+
+            const anos = Math.floor((agora - inicio) / (365.25 * 24 * 60 * 60 * 1000));
+            const meses = Math.floor(((agora - inicio) % (365.25 * 24 * 60 * 60 * 1000)) / (30 * 24 * 60 * 60 * 1000));
+            let permanencia;
+            if (anos > 0) {
+                permanencia = `${anos} ano${anos > 1 ? 's' : ''} ${meses}m`;
+            } else if (meses > 0) {
+                permanencia = `${meses} mês${meses > 1 ? 'es' : ''}`;
+            } else {
+                permanencia = 'Novo';
+            }
+
+            const alertaReajuste = !isHistory && anos > 0
+                ? ' <span class="badge badge-danger"><i class="fa-solid fa-rotate"></i> Reajuste</span>'
+                : '';
+
+            let vigencia;
+            if (isHistory) {
+                vigencia = this._terminationBadge(c.status, c.termination_reason);
+            } else if (!c.end_date) {
+                vigencia = '<span class="badge badge-success"><i class="fa-solid fa-infinity"></i> Indeterminado</span>';
+            } else {
+                const fim = new Date(c.end_date);
+                const diasAte = Math.floor((fim - agora) / (24 * 60 * 60 * 1000));
+                if (diasAte < 0) {
+                    vigencia = '<span class="badge badge-success"><i class="fa-solid fa-infinity"></i> Indeterminado</span>';
+                } else if (diasAte < 90) {
+                    vigencia = `<span class="badge badge-warning"><i class="fa-regular fa-clock"></i> ${diasAte} dias</span>`;
+                } else {
+                    vigencia = '<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Vigente</span>';
+                }
+            }
+
+            const acoes = isHistory
+                ? `<span class="card-subtitle" style="font-size:var(--text-xs)">Encerrado em ${c.terminated_on ? formatDate(c.terminated_on) : '—'}</span>`
+                : `
+                    ${c.contract_url ? `<a href="${c.contract_url}" target="_blank" class="btn btn-sm btn-primary doc-link"><i class="fa-solid fa-file-pdf"></i> PDF</a>` : ''}
+                    <button class="btn btn-sm btn-secondary" data-component="contracts" data-action="edit" data-id="${c.id}">
+                        <i class="fa-solid fa-pen"></i> Editar
+                    </button>
+                    <button class="btn btn-sm btn-secondary" data-component="contracts" data-action="services" data-id="${c.id}">
+                        Serviços
+                    </button>
+                    <button class="btn btn-sm btn-danger" data-component="contracts" data-action="terminate" data-id="${c.id}">
+                        <i class="fa-solid fa-ban"></i> Encerrar
+                    </button>`;
+
+            html += `<tr>
+                <td data-label="Local"><strong class="card-title">${location}</strong></td>
+                <td data-label="Inquilino" class="card-subtitle">${c.tenant_name}</td>
+                <td data-label="Valor"><span class="charge-amount">${formatCurrency(c.rent_amount)}</span></td>
+                <td data-label="Permanência">${permanencia}${alertaReajuste}</td>
+                <td data-label="Vigência">
+                    ${formatDate(c.start_date)} até ${c.end_date ? formatDate(c.end_date) : '—'}
+                    <br><small>${vigencia}</small>
+                </td>
+                <td data-label="Ações" class="table-actions td-actions">${acoes}</td>
+            </tr>`;
+        });
+
+        html += '</tbody></table>';
+        return html;
+    },
+
+    /**
+     * Retorna badge de encerramento conforme reason/status.
+     */
+    _terminationBadge: function(status, reason) {
+        if (status === 'replaced') {
+            return '<span class="badge badge-gray"><i class="fa-solid fa-arrow-right-arrow-left"></i> Substituído</span>';
+        }
+        const map = {
+            'cancelled':  '<span class="badge badge-danger"><i class="fa-solid fa-ban"></i> Cancelado</span>',
+            'expired':    '<span class="badge badge-gray"><i class="fa-solid fa-hourglass-end"></i> Expirado</span>',
+            'rescinded':  '<span class="badge badge-warning"><i class="fa-solid fa-file-circle-xmark"></i> Rescindido</span>',
+        };
+        return map[reason] || '<span class="badge badge-gray"><i class="fa-solid fa-circle-xmark"></i> Encerrado</span>';
+    },
+
+    /**
+     * Modal de confirmação de encerramento.
+     */
+    showTerminateForm: function(contractId) {
+        const form = `
+            <h2><i class="fa-solid fa-ban"></i> Encerrar Contrato</h2>
+            <p style="color:var(--gray-600); margin-bottom:20px;">Selecione o motivo. O contrato será movido para o histórico e a unidade ficará disponível.</p>
+            <form id="terminate-contract-form" data-id="${contractId}">
+                <div class="form-group">
+                    <label>Motivo do encerramento *</label>
+                    <div style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
+                        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:normal;">
+                            <input type="radio" name="terminate-reason" value="expired" required> Expirado — prazo do contrato chegou ao fim
+                        </label>
+                        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:normal;">
+                            <input type="radio" name="terminate-reason" value="cancelled"> Cancelado — acordo entre as partes
+                        </label>
+                        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:normal;">
+                            <input type="radio" name="terminate-reason" value="rescinded"> Rescindido — quebra contratual
+                        </label>
+                    </div>
+                </div>
+                <div class="form-actions" style="margin-top:24px;">
+                    <button type="button" class="btn btn-secondary" data-modal-cancel>Cancelar</button>
+                    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-ban"></i> Confirmar encerramento</button>
+                </div>
+            </form>`;
+        openModal(form);
+    },
+
+    /**
+     * Executa o encerramento via API.
+     */
+    _submitTerminate: async function(form) {
+        const id = form.getAttribute('data-id');
+        const reasonEl = form.querySelector('input[name="terminate-reason"]:checked');
+        if (!reasonEl) {
+            alert('Selecione o motivo do encerramento.');
+            return;
+        }
+        await apiCall(`${this.baseUrl}/${id}/terminate`, 'PATCH', { reason: reasonEl.value });
+        closeModal();
+        showToast('Contrato encerrado. Unidade disponível.', 'success');
+        await this.renderList();
     },
 
     /**
@@ -459,6 +550,9 @@ const ContractsComponent = {
                 case 'services':
                     self.showServices(id);
                     break;
+                case 'terminate':
+                    self.showTerminateForm(id);
+                    break;
             }
         });
     },
@@ -475,7 +569,7 @@ const ContractsComponent = {
         // Submits dos 3 formulários de contratos
         modalBody.addEventListener('submit', async function(e) {
             // Filtra apenas formulários de contratos
-            const knownForms = ['contract-form', 'edit-contract-form', 'contract-service-form'];
+            const knownForms = ['contract-form', 'edit-contract-form', 'contract-service-form', 'terminate-contract-form'];
             if (!knownForms.includes(e.target.id)) return;
 
             e.preventDefault();
@@ -489,6 +583,9 @@ const ContractsComponent = {
                         break;
                     case 'contract-service-form':
                         await self._submitContractService(e.target);
+                        break;
+                    case 'terminate-contract-form':
+                        await self._submitTerminate(e.target);
                         break;
                 }
             } catch (error) {

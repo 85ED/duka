@@ -146,6 +146,23 @@ exports.listContractHistory = async (req, res) => {
     }
 };
 
+// Terminate a contract (cancelled, expired, rescinded)
+exports.terminateContract = async (req, res) => {
+    try {
+        const { contractId } = req.params;
+        const { reason } = req.body; // 'cancelled' | 'expired' | 'rescinded'
+
+        const allowedReasons = ['cancelled', 'expired', 'rescinded'];
+        const normalizedReason = allowedReasons.includes(reason) ? reason : null;
+
+        await Contract.terminate(contractId, req.user.accountId, normalizedReason);
+        res.json({ message: 'Contrato encerrado com sucesso' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Erro ao encerrar contrato' });
+    }
+};
+
 // Update contract fields
 exports.updateContract = async (req, res) => {
     try {
