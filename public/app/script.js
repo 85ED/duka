@@ -35,6 +35,9 @@ const API_BASE = '/api';
 let token = localStorage.getItem('token');
 let currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
 
+/** Getter exportável para componentes que precisam do usuário logado */
+export function getCurrentUser() { return currentUser; }
+
 // ===== AUTH SECTION =====
 document.getElementById('login-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -264,7 +267,12 @@ export function closeModal() {
 // ===== CLIENTS MANAGEMENT (Platform Admin Only) =====
 async function loadClients() {
     updatePageTitle('Gerenciar Clientes');
-
+    const comp = await App.loadComponent('clients');
+    if (!comp) return;
+    if (!comp.contentContainer) comp.init();
+    await comp.renderList();
+    return; // ↓ código legado preservado — nunca executado após migração
+    // eslint-disable-next-line no-unreachable
     try {
         const clients = await apiCall('/admin/clients');
 
@@ -723,6 +731,12 @@ async function editClient(id) {
 // ===== DASHBOARD =====
 async function loadDashboard(selectedYear, selectedMonth) {
     updatePageTitle('Dashboard');
+    const comp = await App.loadComponent('dashboard');
+    if (!comp) return;
+    if (!comp.contentContainer) comp.init();
+    await comp.renderList(selectedYear, selectedMonth);
+    return; // ↓ código legado preservado — nunca executado após migração
+    // eslint-disable-next-line no-unreachable
     try {
         const now = new Date();
         const currentYear = now.getFullYear();
@@ -1313,7 +1327,12 @@ function editServiceById(serviceId) {
 
 async function loadServices() {
     updatePageTitle('Servicos');
-
+    const comp = await App.loadComponent('services');
+    if (!comp) return;
+    if (!comp.contentContainer) comp.init();
+    await comp.renderList();
+    return; // ↓ código legado preservado — nunca executado após migração
+    // eslint-disable-next-line no-unreachable
     try {
         const services = await apiCall('/services');
         allServices = services; // Armazenar globalmente
@@ -1525,7 +1544,12 @@ async function updateServiceStatus(id, status) {
 // ===== CHARGES =====
 async function loadCharges() {
     updatePageTitle('Cobranças');
-
+    const comp = await App.loadComponent('charges');
+    if (!comp) return;
+    if (!comp.contentContainer) comp.init();
+    await comp.renderList();
+    return; // ↓ código legado preservado — nunca executado após migração
+    // eslint-disable-next-line no-unreachable
     try {
         const charges = await apiCall('/charges');
 
@@ -2003,6 +2027,12 @@ async function showChargeForm() {
 // ===== EXPENSES =====
 async function loadExpenses() {
     updatePageTitle('Despesas');
+    const comp = await App.loadComponent('expenses');
+    if (!comp) return;
+    if (!comp.contentContainer) comp.init();
+    await comp.renderList();
+    return; // ↓ código legado preservado — nunca executado após migração
+    // eslint-disable-next-line no-unreachable
     console.log('=== loadExpenses INICIADO ===[',new Date().toLocaleTimeString(), ']==');
 
     try {
@@ -2247,6 +2277,12 @@ async function showExpenseForm() {
 }
 
 async function showPartnerShareManagement() {
+    const comp = await App.loadComponent('partners');
+    if (!comp) return;
+    if (!comp.contentContainer) comp.init();
+    await comp.renderList();
+    return; // ↓ código legado preservado — nunca executado após migração
+    // eslint-disable-next-line no-unreachable
     try {
         const partners = await apiCall('/users/partners');
 
@@ -2349,7 +2385,12 @@ function editSystemUserById(userId) {
 
 async function loadUsers() {
     updatePageTitle('Usuários do Sistema');
-
+    const comp = await App.loadComponent('users');
+    if (!comp) return;
+    if (!comp.contentContainer) comp.init();
+    await comp.renderList();
+    return; // ↓ código legado preservado — nunca executado após migração
+    // eslint-disable-next-line no-unreachable
     try {
         const users = await apiCall('/users');
         allSystemUsers = users; // Armazenar globalmente

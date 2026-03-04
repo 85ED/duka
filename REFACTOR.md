@@ -289,38 +289,33 @@ async function loadTenants() {
 
 ---
 
-# 📌 STATUS: 4/11 Componentes (36%)
+# 📌 STATUS: 12/12 Componentes (100%) ✅ COMPLETO
 
 ```
-✅ 4 completos   → Tenants (modelo de referência), Contracts, Units, Enterprises
-⏳ 7 pendentes   → Escalonados em 3 fases por complexidade
+✅ 12 completos   → Todos os módulos extraídos e delegando via App.loadComponent()
 ```
 
 ---
 
-# 📋 Telas a Refatorar (Ordem Recomendada)
+# 📋 Telas Refatoradas
 
-## ✅ CONCLUÍDO (4/11)
-- ✔ **Tenants** - Modelo de referência já implementado
-- ✔ **Contracts** - CRUD completo + Serviços vinculados
-- ✔ **Units** - CRUD + badges DS v2 + empty state estruturado
-- ✔ **Enterprises** - CRUD + card-title + empty state estruturado
+## ✅ PHASE 1: CRUD Simples (5/5)
+- ✔ **Tenants** — Modelo de referência, event delegation, DS v2
+- ✔ **Contracts** — CRUD + Serviços vinculados + Zone de Perigo (Encerrar/Substituir)
+- ✔ **Units** — CRUD + badges DS v2 + empty state + zona de liberação
+- ✔ **Enterprises** — CRUD + card layout + empty state
+- ✔ **Properties** — Legado, CRUD simples
 
-## ⏳ PHASE 1: CRUD Simples (4/11)
-- ✔ ~~**Units** (Unidades)~~
-- ✔ ~~**Enterprises** (Empresas)~~
-- ◾ **Properties** (Propriedades - legado) ← PRÓXIMO
+## ✅ PHASE 2: Complexidade Média (6/6)
+- ✔ **Services** — Catálogo com ícones, toggle ativo/inativo, edição
+- ✔ **Charges** — Cobranças com quickPay, juros dinâmicos, ajuste, exclusão
+- ✔ **Expenses** — Despesas com filtro por status, baixa, formulário
+- ✔ **Users** — Gestão de usuários do sistema, edição
+- ✔ **Partners** — Sócios com participação percentual, getCurrentUser()
+- ✔ **Clients** — Admin only, CRUD + usuários do cliente + reset senha
 
-## ⏳ PHASE 2: Complexidade Média (6/11)
-- ⬜ **Charges** (com lógica de status)
-- ⬜ **Expenses** (com filtros)
-- ⬜ **Services** (com catálogo)
-- ⬜ **Users** (com controle de acesso)
-- ⬜ **Partners** (Sócios)
-- ⬜ **Clients** (Admin only)
-
-## ⏳ PHASE 3: Complexa (1/11)
-- ⬜ **Dashboard** (gráficos, múltiplos dados)
+## ✅ PHASE 3: Complexa (1/1)
+- ✔ **Dashboard** — KPIs, gráficos de receita/despesa, tooltips, tabela de risco, filtros ano/mês
 
 ---
 
