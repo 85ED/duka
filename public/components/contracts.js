@@ -171,6 +171,88 @@ const ContractsComponent = {
     },
 
     /**
+     * Modal de substituição de inquílino:
+     * Encerra o contrato atual (reason=replaced) e cria um novo para a mesma unidade.
+     */
+    showReplaceForm: async function(contractId, unitId, currentRent, locationLabel) {
+        try {
+            const tenants = await apiCall('/tenants');
+            let tenantOptions = '<option value="">Selecione...</option>';
+            tenants.forEach(t => {
+                tenantOptions += `<option value="${t.id}">${t.name}</option>`;
+            });
+
+            const today = new Date().toISOString().slice(0, 10);
+
+            const form = `
+                <h2><i class="fa-solid fa-arrows-rotate"></i> Substituir Inquílino</h2>
+                <p style="color:var(--gray-600); margin-bottom:4px;">
+                    Unidade: <strong>${locationLabel}</strong>
+                </p>
+                <p style="color:var(--gray-500); font-size:var(--text-sm); margin-bottom:20px;">
+                    O contrato atual será encerrado com motivo <em>"Substituído"</em> e um novo será criado.
+                </p>
+                <form id="replace-contract-form"
+                      data-old-contract-id="${contractId}"
+                      data-unit-id="${unitId}">
+                    <h3 style="font-size:var(--text-sm); font-weight:600; color:var(--gray-500); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px;">Novo Inquílino</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Inquílino *</label>
+                            <select id="replace-tenant-id" required>${tenantOptions}</select>
+                        </div>
+                        <div class="form-group">
+                            <label>Valor do Aluguel *</label>
+                            <input type="number" id="replace-rent" step="0.01" value="${currentRent}" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Data Inicial *</label>
+                            <input type="date" id="replace-start-date" value="${today}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Data Final</label>
+                            <input type="date" id="replace-end-date">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" data-modal-cancel>Cancelar</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-arrows-rotate"></i> Confirmar substituição
+                        </button>
+                    </div>
+                </form>`;
+
+            openModal(form);
+        } catch (error) {
+            alert('Erro ao carregar inquílinos: ' + error.message);
+        }
+    },
+
+    /**
+     * Encerra o contrato antigo e cria um novo para a mesma unidade.
+     */
+    _submitReplaceContract: async function(form) {
+        const oldId  = form.getAttribute('data-old-contract-id');
+        const unitId = form.getAttribute('data-unit-id');
+
+        await apiCall(`${this.baseUrl}/${oldId}/terminate`, 'PATCH', { reason: 'replaced' });
+
+        await apiCall(this.baseUrl, 'POST', {
+            unitId:     parseInt(unitId),
+            tenantId:   parseInt(document.getElementById('replace-tenant-id').value),
+            startDate:  document.getElementById('replace-start-date').value,
+            endDate:    document.getElementById('replace-end-date').value || null,
+            rentAmount: parseFloat(document.getElementById('replace-rent').value)
+        });
+
+        closeModal();
+        showToast('✅ Contrato substituído! Novo inquílino vinculado.', 'success');
+        await this.renderList();
+    },
+
+    /**
      * Modal de confirmação de encerramento.
      */
     showTerminateForm: function(contractId) {
@@ -374,7 +456,26 @@ const ContractsComponent = {
                         <button type="button" class="btn btn-secondary" data-modal-cancel>Cancelar</button>
                         <button type="submit" class="btn btn-primary">Salvar Alterações</button>
                     </div>
-                </form>`;
+                </form>
+
+                <hr style="margin: 32px 0 16px; border-color: var(--gray-200);">
+                <p style="font-size: var(--text-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-400); margin-bottom: 12px;"><i class="fa-solid fa-triangle-exclamation"></i> Ações do contrato</p>
+                <p style="font-size: var(--text-sm); color: var(--gray-500); margin-bottom: 12px;">O histórico é preservado em qualquer caso.</p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-danger"
+                            data-modal-action="terminate-from-edit"
+                            data-id="${contractId}">
+                        <i class="fa-solid fa-ban"></i> Encerrar contrato
+                    </button>
+                    <button type="button" class="btn btn-secondary"
+                            data-modal-action="replace-from-edit"
+                            data-id="${contractId}"
+                            data-unit-id="${contract.unit_id}"
+                            data-rent="${contract.rent_amount}"
+                            data-location="${(contract.location_name || contract.property_address || '').replace(/"/g, '&quot;')}">
+                        <i class="fa-solid fa-arrows-rotate"></i> Substituir inquílino
+                    </button>
+                </div>`;
 
             openModal(form);
         } catch (error) {
@@ -566,10 +667,10 @@ const ContractsComponent = {
         const modalBody = document.getElementById('modal-body');
         if (!modalBody) return;
 
-        // Submits dos 3 formulários de contratos
+        // Submits dos formulários de contratos
         modalBody.addEventListener('submit', async function(e) {
             // Filtra apenas formulários de contratos
-            const knownForms = ['contract-form', 'edit-contract-form', 'contract-service-form', 'terminate-contract-form'];
+            const knownForms = ['contract-form', 'edit-contract-form', 'contract-service-form', 'terminate-contract-form', 'replace-contract-form'];
             if (!knownForms.includes(e.target.id)) return;
 
             e.preventDefault();
@@ -587,6 +688,9 @@ const ContractsComponent = {
                     case 'terminate-contract-form':
                         await self._submitTerminate(e.target);
                         break;
+                    case 'replace-contract-form':
+                        await self._submitReplaceContract(e.target);
+                        break;
                 }
             } catch (error) {
                 alert('Erro: ' + error.message);
@@ -594,18 +698,40 @@ const ContractsComponent = {
         });
 
         // Clique em "Remover" dentro da lista de serviços do modal
+        // E clique nos botões de ação do modal de edição (terminate/replace)
         modalBody.addEventListener('click', async function(e) {
-            const btn = e.target.closest('[data-action="cancel-service"]');
-            if (!btn) return;
+            // Cancel-service
+            const cancelSvc = e.target.closest('[data-action="cancel-service"]');
+            if (cancelSvc) {
+                e.preventDefault();
+                const contractId = parseInt(cancelSvc.getAttribute('data-contract-id'));
+                const csId       = parseInt(cancelSvc.getAttribute('data-cs-id'));
+                try { await self._cancelService(contractId, csId); } catch(err) { alert('Erro: ' + err.message); }
+                return;
+            }
 
+            // Botões dentro do modal de edição: terminate / replace
+            const modalBtn = e.target.closest('[data-modal-action]');
+            if (!modalBtn) return;
             e.preventDefault();
-            const contractId = parseInt(btn.getAttribute('data-contract-id'));
-            const csId       = parseInt(btn.getAttribute('data-cs-id'));
+
+            const action   = modalBtn.getAttribute('data-modal-action');
+            const id       = modalBtn.getAttribute('data-id');
+            const unitId   = modalBtn.getAttribute('data-unit-id');
+            const rent     = modalBtn.getAttribute('data-rent');
+            const location = modalBtn.getAttribute('data-location');
 
             try {
-                await self._cancelService(contractId, csId);
-            } catch (error) {
-                alert('Erro: ' + error.message);
+                switch (action) {
+                    case 'terminate-from-edit':
+                        self.showTerminateForm(id);
+                        break;
+                    case 'replace-from-edit':
+                        await self.showReplaceForm(id, unitId, rent, location);
+                        break;
+                }
+            } catch (err) {
+                alert('Erro: ' + err.message);
             }
         });
     },
