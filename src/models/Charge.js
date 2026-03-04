@@ -189,6 +189,7 @@ class Charge {
             LEFT JOIN enterprises e ON u.enterprise_id = e.id
             LEFT JOIN properties p ON cnt.property_id = p.id
             WHERE c.account_id = ?
+              AND c.status != 'void'
         `;
         const params = [accountId];
 
