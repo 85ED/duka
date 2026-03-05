@@ -31,11 +31,14 @@ const ContractsComponent = {
      * Autossuficiente: garante init().
      */
     renderList: async function() {
+        console.log('[CONTRACTS] Starting renderList');
         if (!this.contentContainer) {
+            console.log('[CONTRACTS] Content container not found, initializing...');
             this.init();
         }
 
         try {
+            console.log('[CONTRACTS] Fetching contracts list...');
             const contracts = await apiCall(this.baseUrl);
 
             let html = '<div class="card">';
@@ -72,7 +75,9 @@ const ContractsComponent = {
 
             html += '</div></div>';
             this.contentContainer.innerHTML = html;
+            console.log('[CONTRACTS] renderList completed successfully');
         } catch (error) {
+            console.error('[CONTRACTS] renderList error:', error);
             this.contentContainer.innerHTML = `<div class="error-message show">${error.message}</div>`;
         }
     },
@@ -292,7 +297,9 @@ const ContractsComponent = {
             alert('Selecione o motivo do encerramento.');
             return;
         }
+        console.log('[CONTRACTS] Terminating contract:', id, 'Reason:', reasonEl.value);
         await apiCall(`${this.baseUrl}/${id}/terminate`, 'PATCH', { reason: reasonEl.value });
+        console.log('[CONTRACTS] Contract terminated successfully');
         closeModal();
         showToast('Contrato encerrado. Unidade disponível.', 'success');
         await this.renderList();
@@ -589,7 +596,7 @@ const ContractsComponent = {
     // ─── Handlers de formulário ───────────────────────────────────────────────
 
     _submitNewContract: async function() {
-        await apiCall('/contracts', 'POST', {
+        const contractData = {
             unitId:          parseInt(document.getElementById('unit-id').value),
             tenantId:        parseInt(document.getElementById('tenant-id').value),
             startDate:       document.getElementById('start-date').value,
@@ -597,21 +604,27 @@ const ContractsComponent = {
             rentAmount:      parseFloat(document.getElementById('rent-amount').value),
             contractAddress: document.getElementById('contract-address').value,
             contractUrl:     document.getElementById('contract-url').value
-        });
+        };
+        console.log('[CONTRACTS] Creating new contract:', contractData);
+        await apiCall('/contracts', 'POST', contractData);
+        console.log('[CONTRACTS] Contract created successfully');
         closeModal();
         await this.renderList();
     },
 
     _submitEditContract: async function(form) {
         const contractId = form.getAttribute('data-contract-id');
-        await apiCall(`${this.baseUrl}/${contractId}`, 'PUT', {
+        const editData = {
             contractUrl:      document.getElementById('edit-contract-url').value || null,
             rentAmount:       parseFloat(document.getElementById('edit-rent-amount').value),
             endDate:          document.getElementById('edit-end-date').value || null,
             dueDay:           parseInt(document.getElementById('edit-due-day').value),
             lateFeeDaily:     parseFloat(document.getElementById('edit-late-fee').value),
             lateFeePencent:   parseFloat(document.getElementById('edit-late-fee-percent').value)
-        });
+        };
+        console.log('[CONTRACTS] Updating contract:', contractId, editData);
+        await apiCall(`${this.baseUrl}/${contractId}`, 'PUT', editData);
+        console.log('[CONTRACTS] Contract updated successfully');
         closeModal();
         showToast('Tá guardado! Contrato atualizado.', 'success');
         await this.renderList();
@@ -620,11 +633,14 @@ const ContractsComponent = {
     _submitContractService: async function(form) {
         const contractId = form.getAttribute('data-contract-id');
         const priceValue = document.getElementById('cs-price').value;
-        await apiCall(`${this.baseUrl}/${contractId}/services`, 'POST', {
+        const serviceData = {
             serviceId: parseInt(document.getElementById('cs-service').value),
             price:     priceValue ? parseFloat(priceValue) : undefined,
             startDate: document.getElementById('cs-start-date').value
-        });
+        };
+        console.log('[CONTRACTS] Adding service to contract:', contractId, serviceData);
+        await apiCall(`${this.baseUrl}/${contractId}/services`, 'POST', serviceData);
+        console.log('[CONTRACTS] Service added successfully');
         await this.showServices(parseInt(contractId));
     },
 
@@ -683,6 +699,7 @@ const ContractsComponent = {
 
             e.preventDefault();
             try {
+                console.log('[CONTRACTS] Form submit:', e.target.id);
                 switch (e.target.id) {
                     case 'contract-form':
                         await self._submitNewContract();
@@ -701,7 +718,8 @@ const ContractsComponent = {
                         break;
                 }
             } catch (error) {
-                alert('Erro: ' + error.message);
+                console.error('[CONTRACTS] Form submit error:', error);
+                alert('❌ Erro ao processar contrato:\n\n' + error.message);
             }
         });
 

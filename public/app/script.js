@@ -166,7 +166,31 @@ export function apiCall(endpoint, method = 'GET', body = null) {
 
     if (body) options.body = JSON.stringify(body);
 
-    return fetch(`${API_BASE}${endpoint}`, options).then(res => res.json());
+    return fetch(`${API_BASE}${endpoint}`, options)
+        .then(res => {
+            // Log request details for debugging
+            console.log(`[API] ${method} ${endpoint} → Status: ${res.status}`);
+            
+            // Check if response is ok
+            if (!res.ok) {
+                return res.json().then(data => {
+                    const errorMsg = data.error || `HTTP ${res.status}: ${res.statusText}`;
+                    console.error(`[API ERROR] ${method} ${endpoint}:`, errorMsg);
+                    throw new Error(errorMsg);
+                }).catch(err => {
+                    // If response is not JSON, throw the status error
+                    if (err instanceof SyntaxError) {
+                        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                    }
+                    throw err;
+                });
+            }
+            return res.json();
+        })
+        .catch(err => {
+            console.error(`[API EXCEPTION] ${method} ${endpoint}:`, err);
+            throw err;
+        });
 }
 
 export function showError(elementId, message) {
@@ -260,6 +284,7 @@ export function openModal(content) {
 }
 
 export function closeModal() {
+    console.log('[APP] Closing modal');
     document.getElementById('modal').classList.remove('active');
     document.getElementById('modal').classList.add('hidden');
 }

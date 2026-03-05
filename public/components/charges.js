@@ -9,6 +9,7 @@ const ChargesComponent = {
     contentContainer: null,
     eventListenersAttached: false,
     modalListenersAttached: false,
+    isProcessing: false,
 
     init() {
         this.contentContainer = document.getElementById('content');
@@ -354,8 +355,17 @@ const ChargesComponent = {
             if (!btn) return;
             e.preventDefault();
 
+            // Proteger contra double-click
+            if (self.isProcessing) {
+                console.warn('[CHARGES] Operação em andamento, aguarde...');
+                return;
+            }
+
             const action = btn.getAttribute('data-action');
             const id     = parseInt(btn.getAttribute('data-id'));
+
+            self.isProcessing = true;
+            btn.disabled = true;
 
             switch (action) {
                 case 'add':       self.showChargeForm(); break;
@@ -363,6 +373,12 @@ const ChargesComponent = {
                 case 'adjust':    self.showAdjustForm(id); break;
                 case 'void':      self._voidCharge(id); break;
             }
+
+            // Reabilitar após 800ms
+            setTimeout(() => {
+                self.isProcessing = false;
+                btn.disabled = false;
+            }, 800);
         });
     },
 

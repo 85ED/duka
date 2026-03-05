@@ -32,6 +32,14 @@ class Tenant {
         );
         return rows[0];
     }
+
+    static async delete(id, accountId) {
+        const [result] = await db.execute(
+            'DELETE FROM tenants WHERE id = ? AND account_id = ?',
+            [id, accountId]
+        );
+        return result;
+    }
 }
 
 module.exports = Tenant;

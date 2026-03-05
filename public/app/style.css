@@ -375,10 +375,10 @@ body {
     border-bottom: 1px solid var(--border-color);
     padding: 12px 20px;
     margin-left: 250px;
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 20px;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
+    gap: 20px;
     box-shadow: var(--shadow);
     position: sticky;
     top: 0;
@@ -1025,7 +1025,6 @@ body {
 
     .top-bar {
         margin-left: 0;
-        grid-template-columns: auto 1fr auto;
         padding: 10px 15px;
     }
 
@@ -1095,7 +1094,6 @@ body {
     }
 
     .top-bar {
-        grid-template-columns: auto 1fr auto;
         gap: 10px;
         padding: 8px 10px;
     }

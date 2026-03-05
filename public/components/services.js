@@ -134,8 +134,8 @@ const ServicesComponent = {
                     <div class="form-group">
                         <label>Ícone *</label>
                         <select id="svc-icon" required>${iconSelect}</select>
-                        <div style="margin-top:8px;">
-                            <i id="svc-icon-preview" class="${currentIcon}" style="font-size:2em; color:var(--primary-color);"></i>
+                        <div style="margin-top:8px; display:none;">
+                            <i id="svc-icon-preview" class="${currentIcon}" style="font-size:1em; color:var(--primary-color);"></i>
                         </div>
                     </div>
                 </div>

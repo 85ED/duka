@@ -69,6 +69,7 @@ router.put('/properties/:propertyId', propertyController.updateProperty);
 	const tenantController = require('../controllers/tenantController');
 	router.put('/tenants/:id', tenantController.update);
 	router.get('/tenants/:id', tenantController.findById);
+	router.delete('/tenants/:id', tenantController.delete);
 
 // Contracts
 router.post('/contracts', contractController.createContract);

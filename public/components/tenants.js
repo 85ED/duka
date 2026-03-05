@@ -34,6 +34,7 @@ const TenantsComponent = {
 
         try {
             const tenants = await apiCall(this.baseUrl);
+            console.log('[TENANTS] Fetched tenants:', tenants);
 
             let html = '<div class="card">';
             html += '<div class="card-header">';
@@ -76,7 +77,9 @@ const TenantsComponent = {
 
             html += '</div></div>';
             this.contentContainer.innerHTML = html;
+            console.log('[TENANTS] renderList completed successfully');
         } catch (error) {
+            console.error('[TENANTS] renderList error:', error);
             this.contentContainer.innerHTML = `<div class="error-message show">${error.message}</div>`;
         }
     },
@@ -146,18 +149,24 @@ const TenantsComponent = {
                 document_url: document.getElementById('tenant-document-url').value
             };
 
+            console.log('[TENANTS] Submitting form:', { isEdit: !!tenantId, data });
+
             if (tenantId) {
                 // Editar
+                console.log('[TENANTS] Updating tenant:', tenantId);
                 await apiCall(`${this.baseUrl}/${tenantId}`, 'PUT', data);
             } else {
                 // Criar
+                console.log('[TENANTS] Creating new tenant');
                 await apiCall(this.baseUrl, 'POST', data);
             }
 
+            console.log('[TENANTS] Form submitted successfully');
             closeModal();
             await this.renderList();
         } catch (error) {
-            alert('Erro: ' + error.message);
+            console.error('[TENANTS] Form submit error:', error);
+            alert('❌ Erro ao salvar inquilino:\n\n' + error.message);
         }
     },
 
