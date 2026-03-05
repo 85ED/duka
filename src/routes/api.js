@@ -107,6 +107,7 @@ router.post('/expenses', expenseController.createExpense);
 router.get('/expenses', expenseController.listExpenses);
 router.get('/expenses/:id', expenseController.getExpense);
 router.put('/expenses/:id/status', expenseController.updateExpenseStatus);
+router.patch('/expenses/:id/pay', expenseController.markExpenseAsPaid);
 router.get('/properties/:propertyId/expenses', expenseController.getPropertyExpenses);
 
 module.exports = router;
