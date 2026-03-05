@@ -5,15 +5,17 @@ exports.createExpense = async (req, res) => {
     try {
         const { propertyId, description, amount, expenseDate, category } = req.body;
 
-        // Verify property exists
-        const property = await Property.findById(propertyId, req.user.accountId);
-        if (!property) {
-            return res.status(404).json({ error: 'Property not found' });
+        // Verify property exists only if propertyId is provided
+        if (propertyId) {
+            const property = await Property.findById(propertyId, req.user.accountId);
+            if (!property) {
+                return res.status(404).json({ error: 'Property not found' });
+            }
         }
 
         const id = await Expense.create({
             accountId: req.user.accountId,
-            propertyId,
+            propertyId: propertyId || null,
             description,
             amount: parseFloat(amount),
             paidByUserId: req.user.id,

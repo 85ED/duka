@@ -311,11 +311,15 @@ const ContractsComponent = {
      */
     showForm: async function() {
         try {
+            console.log('[CONTRACTS] Loading units and tenants...');
             const [units, tenants] = await Promise.all([
                 apiCall('/units'),
                 apiCall('/tenants')
             ]);
 
+            console.log('[CONTRACTS] All units:', units);
+            console.log('[CONTRACTS] Filtering for vacant units...');
+            
             const availableUnits = units.filter(u => u.unit_status === 'vacant');
 
             let unitOptions = '<option value="">Selecione...</option>';
@@ -325,6 +329,8 @@ const ContractsComponent = {
             if (availableUnits.length === 0) {
                 unitOptions += '<option value="" disabled>Nenhuma unidade disponível</option>';
             }
+
+            console.log('[CONTRACTS] Available units count:', availableUnits.length);
 
             let tenantOptions = '<option value="">Selecione...</option>';
             tenants.forEach(t => {
