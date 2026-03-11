@@ -70,7 +70,7 @@ const ServicesComponent = {
                                 <th>Nome</th>
                                 <th>Valor</th>
                                 <th>Status</th>
-                                <th>Ações</th>
+                                <th class="col-acoes">Ações</th>
                             </tr>
                         </thead>
                         <tbody>`;

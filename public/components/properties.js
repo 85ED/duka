@@ -45,7 +45,7 @@ const PropertiesComponent = {
                            <tr>
                                <th>Endereço</th>
                                <th>Descrição</th>
-                               <th style="text-align:center;">Ações</th>
+                               <th class="col-acoes" style="text-align:center;">Ações</th>
                            </tr>
                        </thead>
                        <tbody>

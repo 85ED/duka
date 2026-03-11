@@ -49,7 +49,7 @@ const UsersComponent = {
                 html += `
                     <table class="table">
                         <thead>
-                            <tr><th>Nome</th><th>E-mail</th><th>Função</th><th>Ações</th></tr>
+                            <tr><th>Nome</th><th>E-mail</th><th>Função</th><th class="col-acoes">Ações</th></tr>
                         </thead>
                         <tbody>`;
 

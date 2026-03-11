@@ -568,14 +568,38 @@ body {
     flex-wrap: wrap;
 }
 
-/* Célula de ações — flex horizontal no desktop */
+/* Célula de ações — flex horizontal */
 .td-actions {
     display: flex;
     flex-direction: row;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: 6px;
     align-items: center;
     justify-content: flex-start;
+}
+
+/* --- Desktop: coluna de ações com espaço adequado --- */
+@media screen and (min-width: 769px) {
+    .table th.col-acoes {
+        width: 200px;
+        text-align: center;
+    }
+
+    .table td.td-actions {
+        overflow: visible;
+        text-overflow: unset;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .td-actions .btn,
+    .td-actions .btn.btn-sm {
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
 }
 
 /* --- 4. VALORES MONETÁRIOS --- */

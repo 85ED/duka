@@ -65,7 +65,7 @@ const ChargesComponent = {
                                 <th>Juros</th>
                                 <th>Total</th>
                                 <th style="text-align:center;">Pago?</th>
-                                <th style="text-align:center;">Ações</th>
+                                <th class="col-acoes" style="text-align:center;">Ações</th>
                             </tr>
                         </thead>
                         <tbody>`;

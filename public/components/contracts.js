@@ -90,7 +90,7 @@ const ContractsComponent = {
         const opacity = isHistory ? ' style="opacity:0.65"' : '';
 
         let html = `<table class="table"${opacity}>`;
-        html += '<thead><tr><th>Local</th><th>Inquilino</th><th>Valor</th><th>Permanência</th><th>Início – Vigência</th><th>Ações</th></tr></thead>';
+        html += '<thead><tr><th>Local</th><th>Inquilino</th><th>Valor</th><th>Permanência</th><th>Início – Vigência</th><th class="col-acoes">Ações</th></tr></thead>';
         html += '<tbody>';
 
         contracts.forEach(c => {
@@ -524,7 +524,7 @@ const ContractsComponent = {
                 </div>`;
             if (contractServices.length > 0) {
                 listHtml  = '<table class="table">';
-                listHtml += '<thead><tr><th>Serviço</th><th>Valor</th><th>Início</th><th>Status</th><th>Ações</th></tr></thead>';
+                listHtml += '<thead><tr><th>Serviço</th><th>Valor</th><th>Início</th><th>Status</th><th class="col-acoes">Ações</th></tr></thead>';
                 listHtml += '<tbody>';
                 contractServices.forEach(cs => {
                     const valor = cs.price !== null ? cs.price : cs.default_price;

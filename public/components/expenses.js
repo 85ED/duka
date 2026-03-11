@@ -78,7 +78,7 @@ const ExpensesComponent = {
                         <th>Valor</th>
                         <th>Data</th>
                         <th>Status</th>
-                        <th>Ações</th>
+                        <th class="col-acoes">Ações</th>
                     </tr>
                 </thead>
                 <tbody>`;

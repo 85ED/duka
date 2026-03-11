@@ -56,7 +56,7 @@ const EnterprisesComponent = {
                                 <th>Endereço</th>
                                 <th>Unidades</th>
                                 <th>Ocupação</th>
-                                <th>Ações</th>
+                                <th class="col-acoes">Ações</th>
                             </tr>
                         </thead>
                         <tbody>`;

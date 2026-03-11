@@ -48,7 +48,7 @@ const PartnersComponent = {
             } else {
                 html += `
                     <table class="table">
-                        <thead><tr><th>Nome</th><th>Percentual</th><th>Ações</th></tr></thead>
+                        <thead><tr><th>Nome</th><th>Percentual</th><th class="col-acoes">Ações</th></tr></thead>
                         <tbody>`;
 
                 partners.forEach(p => {

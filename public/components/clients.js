@@ -41,7 +41,7 @@ const ClientsComponent = {
                 html += '<p style="text-align: center; color: var(--text-secondary);">Nenhum cliente cadastrado</p>';
             } else {
                 html += `<table class="table">
-                    <thead><tr><th>Cliente</th><th>Criado em</th><th>Usuários</th><th>Propriedades</th><th>Ações</th></tr></thead>
+                    <thead><tr><th>Cliente</th><th>Criado em</th><th>Usuários</th><th>Propriedades</th><th class="col-acoes">Ações</th></tr></thead>
                     <tbody>`;
                 clients.forEach(c => {
                     const created = new Date(c.created_at).toLocaleDateString('pt-BR');
@@ -118,7 +118,7 @@ const ClientsComponent = {
                     usersHtml = '<p style="color: var(--text-secondary);">Nenhum usuário cadastrado</p>';
                 } else {
                     usersHtml = `<table class="table" style="margin-top: 10px;">
-                        <thead><tr><th>Nome</th><th>Email</th><th>Tipo</th><th>Ações</th></tr></thead><tbody>`;
+                        <thead><tr><th>Nome</th><th>Email</th><th>Tipo</th><th class="col-acoes">Ações</th></tr></thead><tbody>`;
                     users.forEach(u => {
                         const roleLabel = u.role === 'client_admin' ? 'Admin' : 'Membro';
                         usersHtml += `<tr>

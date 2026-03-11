@@ -56,7 +56,7 @@ const TenantsComponent = {
                     </div>`;
             } else {
                 html += '<table class="table">';
-                html += '<thead><tr><th>Nome</th><th>Documento</th><th>Email</th><th>Telefone</th><th>Ações</th></tr></thead>';
+                html += '<thead><tr><th>Nome</th><th>Documento</th><th>Email</th><th>Telefone</th><th class="col-acoes">Ações</th></tr></thead>';
                 html += '<tbody>';
                 
                 tenants.forEach(t => {

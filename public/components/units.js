@@ -69,7 +69,7 @@ const UnitsComponent = {
                                 <th>Status</th>
                                 <th>Inquilino</th>
                                 <th>Aluguel</th>
-                                <th>Ações</th>
+                                <th class="col-acoes">Ações</th>
                             </tr>
                         </thead>
                         <tbody>`;

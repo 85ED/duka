@@ -774,6 +774,16 @@ body {
     text-overflow: ellipsis;
 }
 
+.table td.td-actions {
+    overflow: visible;
+    text-overflow: unset;
+}
+
+.table th.col-acoes {
+    width: 200px;
+    text-align: center;
+}
+
 .table thead {
     background-color: var(--light-bg);
 }
