@@ -28,9 +28,6 @@ exports.addContractService = async (req, res) => {
         res.status(201).json({ id, message: 'Servico adicionado ao contrato' });
     } catch (error) {
         console.error(error);
-        if (error.message.includes('já está ativo')) {
-            return res.status(400).json({ error: error.message });
-        }
         res.status(500).json({ error: 'Erro ao adicionar servico' });
     }
 };

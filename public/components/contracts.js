@@ -711,6 +711,12 @@ const ContractsComponent = {
             if (!knownForms.includes(e.target.id)) return;
 
             e.preventDefault();
+
+            // Proteção contra double-click
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            if (submitBtn && submitBtn.disabled) return;
+            if (submitBtn) submitBtn.disabled = true;
+
             try {
                 console.log('[CONTRACTS] Form submit:', e.target.id);
                 switch (e.target.id) {

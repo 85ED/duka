@@ -111,8 +111,8 @@ class Dashboard {
                   AND p.status = 'confirmed'
                   AND p.payment_date <= ?
                  WHERE c.account_id = ?
-                   AND c.reference_month >= ?
-                   AND c.reference_month <= ?
+                   AND c.due_date >= ?
+                   AND c.due_date <= ?
                    AND c.status != 'void'
                  GROUP BY c.id`,
                 [monthEndStr, accountId, monthStartStr, monthEndStr]
@@ -134,11 +134,11 @@ class Dashboard {
                 }
             });
 
-            // Usa o total real cobrado (aluguel + serviços) como denominador,
-            // evitando que serviços adicionais causem % > 100
-            const totalBilledChargesMes = rules.centsToNumber(totalBilledChargesCents);
+            // Faturamento = soma real das cobranças do mês (aluguel + serviços)
+            faturamentoMes = rules.centsToNumber(totalBilledChargesCents);
+
             const inadimplenciaMes = rules.calcInadimplenciaMes(
-                totalBilledChargesMes || faturamentoMes,
+                faturamentoMes,
                 rules.centsToNumber(unpaidByEndTotalCents)
             );
 
@@ -235,14 +235,14 @@ class Dashboard {
                 };
             }).sort((a, b) => b.impact_pct - a.impact_pct);
 
-            // Cobranças por mês do ano (para gráfico de evolução)
+            // Cobranças por mês do ano (para gráfico de evolução) - usa due_date
             const [chargesYearRows] = await connection.execute(
-                `SELECT DATE_FORMAT(reference_month, '%m') as m, COALESCE(SUM(total_amount), 0) as total
+                `SELECT DATE_FORMAT(due_date, '%m') as m, COALESCE(SUM(total_amount), 0) as total
                  FROM charges
                  WHERE account_id = ?
-                   AND reference_month >= ? AND reference_month <= ?
+                   AND due_date >= ? AND due_date <= ?
                    AND status != 'void'
-                 GROUP BY DATE_FORMAT(reference_month, '%m')`,
+                 GROUP BY DATE_FORMAT(due_date, '%m')`,
                 [accountId, yearStart, yearEnd]
             );
             const chargesByMonth = new Map();
