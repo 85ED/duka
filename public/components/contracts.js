@@ -143,10 +143,17 @@ const ContractsComponent = {
                         <i class="fa-solid fa-ban"></i> Encerrar
                     </button>`;
 
+            // Valor total = aluguel + serviços ativos
+            const servicosTotal = parseFloat(c.services_total) || 0;
+            const valorTotal = parseFloat(c.rent_amount) + servicosTotal;
+            const valorHtml = servicosTotal > 0
+                ? `<span class="charge-amount">${formatCurrency(valorTotal)}</span><br><small style="color:var(--gray-500);">Aluguel: ${formatCurrency(c.rent_amount)} + Serviços: ${formatCurrency(servicosTotal)}</small>`
+                : `<span class="charge-amount">${formatCurrency(c.rent_amount)}</span>`;
+
             html += `<tr>
                 <td data-label="Local"><strong class="card-title">${location}</strong></td>
                 <td data-label="Inquilino" class="card-subtitle">${c.tenant_name}</td>
-                <td data-label="Valor"><span class="charge-amount">${formatCurrency(c.rent_amount)}</span></td>
+                <td data-label="Valor">${valorHtml}</td>
                 <td data-label="Permanência">${permanencia}${alertaReajuste}</td>
                 <td data-label="Vigência">
                     ${formatDate(c.start_date)} até ${c.end_date ? formatDate(c.end_date) : '—'}
@@ -554,7 +561,7 @@ const ContractsComponent = {
             });
 
             const form = `
-                <h2>Serviços — ${contract.location_name || contract.property_address}</h2>
+                <h2>Serviços — ${contract.location_name || (contract.enterprise_name ? contract.enterprise_name + ' - ' + contract.unit_identifier : contract.property_address) || 'Contrato'}</h2>
                 <p><strong>Inquilino:</strong> ${contract.tenant_name}</p>
                 <hr>
                 <h3>Serviços Ativos</h3>

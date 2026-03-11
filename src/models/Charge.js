@@ -27,8 +27,11 @@ class Charge {
                 [chargeId, rentAmount]
             );
 
-            // Adicionar servicos recorrentes ativos (usa referenceMonth para validar vigência)
-            const refDate = referenceMonth || dueDate;
+            // Adicionar servicos recorrentes ativos
+            // start_date <= dueDate: inclui serviços que começaram até o vencimento
+            // end_date >= referenceMonth: inclui serviços ativos no mês de referência
+            const startCheck = dueDate || referenceMonth;
+            const endCheck = referenceMonth || dueDate;
             const [serviceRows] = await connection.execute(
                 `SELECT cs.price, s.name, s.default_price
                  FROM contract_services cs
@@ -38,7 +41,7 @@ class Charge {
                    AND cs.start_date <= ?
                    AND (cs.end_date IS NULL OR cs.end_date >= ?)
                    AND s.status = 'active'`,
-                [contractId, refDate, refDate]
+                [contractId, startCheck, endCheck]
             );
 
             for (const service of serviceRows) {

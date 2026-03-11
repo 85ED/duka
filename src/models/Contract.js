@@ -28,10 +28,19 @@ class Contract {
     static async findById(id, accountId) {
         const [rows] = await db.execute(
             `SELECT c.*, 
+                    COALESCE(CONCAT(e.name, ' - ', u.identifier), p.address) as location_name,
                     u.identifier as unit_identifier, u.description as unit_description,
                     e.name as enterprise_name, e.address as enterprise_address,
                     p.address as property_address, 
-                    t.name as tenant_name, t.phone as tenant_phone, t.email as tenant_email
+                    t.name as tenant_name, t.phone as tenant_phone, t.email as tenant_email,
+                    COALESCE(
+                        (SELECT SUM(COALESCE(cs2.price, s2.default_price))
+                         FROM contract_services cs2
+                         JOIN services s2 ON cs2.service_id = s2.id
+                         WHERE cs2.contract_id = c.id
+                           AND cs2.status = 'active'
+                           AND s2.status = 'active'), 0
+                    ) as services_total
              FROM contracts c
              LEFT JOIN units u ON c.unit_id = u.id
              LEFT JOIN enterprises e ON u.enterprise_id = e.id
@@ -155,7 +164,15 @@ class Contract {
                     u.identifier as unit_identifier,
                     e.name as enterprise_name,
                     p.address as property_address, 
-                    t.name as tenant_name 
+                    t.name as tenant_name,
+                    COALESCE(
+                        (SELECT SUM(COALESCE(cs2.price, s2.default_price))
+                         FROM contract_services cs2
+                         JOIN services s2 ON cs2.service_id = s2.id
+                         WHERE cs2.contract_id = c.id
+                           AND cs2.status = 'active'
+                           AND s2.status = 'active'), 0
+                    ) as services_total
              FROM contracts c
              LEFT JOIN units u ON c.unit_id = u.id
              LEFT JOIN enterprises e ON u.enterprise_id = e.id
