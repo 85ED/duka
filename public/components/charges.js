@@ -144,7 +144,8 @@ const ChargesComponent = {
 
             let options = '<option value="">Selecione...</option>';
             contracts.forEach(c => {
-                options += `<option value="${c.id}">${c.property_address || c.location_name} - ${c.tenant_name}</option>`;
+                const locationLabel = c.property_address || c.location_name || 'Sem endereço';
+                options += `<option value="${c.id}">${locationLabel} - ${c.tenant_name}</option>`;
             });
 
             const form = `
@@ -215,9 +216,9 @@ const ChargesComponent = {
             <h2>💵 Confirmar Pagamento</h2>
             <div class="payment-summary-box">
                 <p class="payment-label">Inquilino</p>
-                <p class="payment-value">${tenantName}</p>
+                <p class="payment-value">${tenantName || 'N/A'}</p>
                 <p class="payment-label">Unidade</p>
-                <p class="payment-value">${propertyAddress}</p>
+                <p class="payment-value">${propertyAddress || 'N/A'}</p>
             </div>
 
             <form id="payment-form"
