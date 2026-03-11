@@ -100,10 +100,11 @@
 
         <!-- Header -->
         <header class="top-bar">
-            <button class="menu-toggle" id="toggle-menu-btn" aria-label="Abrir menu">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-            <h1 id="page-title">Dashboard</h1>
+            <div class="header-left">
+                <span class="header-logo">Đuka</span>
+                <span class="header-divider"></span>
+                <h1 id="page-title">Dashboard</h1>
+            </div>
             <div class="user-info">
                 <span id="user-name">Usuário</span>
                 <button id="logout-btn" class="btn btn-small">Sair</button>
@@ -114,6 +115,50 @@
         <main class="main-content">
             <div id="content" class="content-area"></div>
         </main>
+
+        <!-- Bottom Navigation (Mobile) -->
+        <nav class="bottom-nav" id="bottom-nav">
+            <a href="#" data-action="dashboard" class="bottom-nav-item active">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" data-action="charges" class="bottom-nav-item">
+                <i class="fa-solid fa-receipt"></i>
+                <span>Cobranças</span>
+            </a>
+            <a href="#" data-action="tenants" class="bottom-nav-item">
+                <i class="fa-solid fa-users"></i>
+                <span>Inquilinos</span>
+            </a>
+            <a href="#" data-action="units" class="bottom-nav-item">
+                <i class="fa-solid fa-door-open"></i>
+                <span>Unidades</span>
+            </a>
+            <a href="#" data-action="expenses" class="bottom-nav-item">
+                <i class="fa-solid fa-money-bill-wave"></i>
+                <span>Despesas</span>
+            </a>
+            <a href="#" data-action="contracts" class="bottom-nav-item">
+                <i class="fa-solid fa-file-contract"></i>
+                <span>Contratos</span>
+            </a>
+            <a href="#" data-action="services" class="bottom-nav-item">
+                <i class="fa-solid fa-wrench"></i>
+                <span>Serviços</span>
+            </a>
+            <a href="#" data-action="enterprises" class="bottom-nav-item">
+                <i class="fa-solid fa-building"></i>
+                <span>Empreendimentos</span>
+            </a>
+            <a href="#" data-action="users" class="bottom-nav-item">
+                <i class="fa-solid fa-user-tie"></i>
+                <span>Usuários</span>
+            </a>
+            <a href="#" data-action="partners" class="bottom-nav-item">
+                <i class="fa-solid fa-handshake"></i>
+                <span>Sócios</span>
+            </a>
+        </nav>
 
         <!-- Footer -->
         <footer class="footer">

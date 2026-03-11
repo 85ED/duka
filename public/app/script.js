@@ -251,15 +251,28 @@ export function toggleSidebar() {
             overlay.classList.remove('active');
         }
     }
+    
+    // Garante que pointer-events está correto
+    if (!isActive) {
+        sidebar.style.pointerEvents = 'none';
+    } else {
+        sidebar.style.pointerEvents = 'auto';
+    }
 }
 
 export function closeSidebar() {
     const sidebar = document.querySelector('.sidebar');
     const overlay = document.getElementById('sidebar-overlay');
+    
+    // Remove a classe active para animar o sidebar para fora
     sidebar.classList.remove('active');
+    
     if (overlay) {
         overlay.classList.remove('active');
     }
+    
+    // Desabilita pointer-events quando fechado
+    sidebar.style.pointerEvents = 'none';
 }
 
 export function formatCurrency(value) {
@@ -475,6 +488,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'partners': loadPartners(); break;
                 case 'users': loadUsers(); break;
                 case 'logout': logout(); break;
+            }
+        });
+    });
+
+    // Bottom Navigation menu items (Mobile)
+    const bottomNavLinks = document.querySelectorAll('.bottom-nav-item[data-action]');
+    bottomNavLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const action = link.getAttribute('data-action');
+            
+            // Update active class
+            document.querySelectorAll('.bottom-nav-item').forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+            
+            // Execute action
+            switch(action) {
+                case 'dashboard': loadDashboard(); break;
+                case 'charges': loadCharges(); break;
+                case 'tenants': loadTenants(); break;
+                case 'units': loadUnits(); break;
+                case 'expenses': loadExpenses(); break;
+                case 'contracts': loadContracts(); break;
+                case 'services': loadServices(); break;
+                case 'enterprises': loadEnterprises(); break;
+                case 'users': loadUsers(); break;
+                case 'partners': loadPartners(); break;
             }
         });
     });

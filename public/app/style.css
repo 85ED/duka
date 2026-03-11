@@ -311,6 +311,9 @@ body {
     overflow-y: auto;
     z-index: 100;
     transition: transform 0.3s ease;
+    transform: translateX(0);
+    /* Garante que pointer-events funciona corretamente */
+    pointer-events: auto;
 }
 
 .app-section.hidden .sidebar {
@@ -342,6 +345,12 @@ body {
     color: var(--white);
     font-size: 24px;
     cursor: pointer;
+    padding: 4px;
+    transition: transform 0.2s ease;
+}
+
+.close-sidebar:hover {
+    transform: scale(1.1);
 }
 
 .nav-menu {
@@ -367,6 +376,79 @@ body {
 
 .nav-link.active {
     background-color: var(--primary-color);
+}
+
+/* ===== SIDEBAR OVERLAY ===== */
+#sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 99;
+    pointer-events: none;
+}
+
+#sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* ===== BOTTOM NAVIGATION (Mobile) ===== */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+
+    display: flex;
+    align-items: center;
+
+    background: #ffffff;
+    border-top: 1px solid #e5e7eb;
+
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    padding: 0 12px;
+}
+
+.bottom-nav::-webkit-scrollbar {
+    display: none;
+}
+
+.bottom-nav-item {
+    flex: 0 0 auto;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 70px;
+
+    padding: 6px 12px;
+    margin: 0 4px;
+
+    font-size: 11px;
+    color: #475569;
+
+    text-decoration: none;
+}
+
+.bottom-nav-item i {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.bottom-nav-item.active {
+    color: #2563eb;
 }
 
 /* ===== TOP BAR ===== */
@@ -1010,32 +1092,32 @@ body {
 
 @media (max-width: 768px) {
     .sidebar {
-        width: 250px;
-        transform: translateX(-250px);
-        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
-    }
-
-    .sidebar.active {
-        transform: translateX(0);
+        display: none !important;
     }
 
     .close-sidebar {
-        display: block;
+        display: none !important;
+    }
+
+    .menu-toggle {
+        display: none !important;
     }
 
     .top-bar {
         margin-left: 0;
         padding: 10px 15px;
-    }
-
-    .menu-toggle {
-        display: block;
+        padding-bottom: 10px;
     }
 
     .main-content {
         margin-left: 0;
         padding: 15px;
-        min-height: calc(100vh - 50px);
+        min-height: calc(100vh - 50px - 70px);
+        padding-bottom: 90px;
+    }
+
+    .bottom-nav {
+        display: flex;
     }
 
     .modal-content {
@@ -1091,19 +1173,33 @@ body {
 @media (max-width: 480px) {
     .sidebar {
         width: 100%;
+        transform: translateX(-100%);
     }
 
     .top-bar {
         gap: 10px;
         padding: 8px 10px;
+        padding-bottom: 8px;
     }
 
     .main-content {
         padding: 10px;
+        padding-bottom: 80px;
+        min-height: calc(100vh - 50px - 60px);
     }
 
     .modal-content {
         padding: 15px;
+    }
+
+    .bottom-nav {
+        display: flex;
+    }
+
+    .bottom-nav-item {
+        min-width: 50px;
+        font-size: 10px;
+        padding: 4px 10px;
     }
 
     .form-group {
@@ -1150,8 +1246,28 @@ body {
 
 a {
     color: #273c75;
-    text-decoration: underline;
+    text-decoration: none;
     cursor: pointer;
+}
+
+/* Manter underline apenas para links comuns (fora de nav) */
+.content-area a {
+    text-decoration: underline;
+}
+
+/* ===== FOOTER ===== */
+footer {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    margin-top: 40px;
+}
+
+@media (max-width: 768px) {
+    footer {
+        padding-bottom: 100px;
+    }
 }
 
 /* ===== DESPESAS - KPI E GRÁFICO ===== */
