@@ -252,9 +252,9 @@ export function toggleSidebar() {
         }
     }
     
-    // Garante que pointer-events está correto
-    if (!isActive) {
-        sidebar.style.pointerEvents = 'none';
+    // Controlar pointer-events apenas no mobile
+    if (window.innerWidth <= 768) {
+        sidebar.style.pointerEvents = isActive ? 'auto' : 'none';
     } else {
         sidebar.style.pointerEvents = 'auto';
     }
@@ -271,8 +271,10 @@ export function closeSidebar() {
         overlay.classList.remove('active');
     }
     
-    // Desabilita pointer-events quando fechado
-    sidebar.style.pointerEvents = 'none';
+    // Desabilita pointer-events apenas no mobile (onde sidebar é overlay)
+    if (window.innerWidth <= 768) {
+        sidebar.style.pointerEvents = 'none';
+    }
 }
 
 export function formatCurrency(value) {

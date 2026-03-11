@@ -164,8 +164,8 @@ const DashboardComponent = {
                 html += `
                     <div class="card">
                         <div class="card-header"><h2>Composição das despesas do mês</h2></div>
-                        <div class="card-body" style="display:flex; justify-content:center; align-items:center; padding:20px;">
-                            <canvas id="despesas-donut-chart" width="280" height="280" style="max-width:280px; max-height:280px;"></canvas>
+                        <div class="card-body" style="display:flex; justify-content:center; align-items:center; padding:24px;">
+                            <canvas id="despesas-donut-chart" style="max-width:420px; max-height:320px;"></canvas>
                         </div>
                     </div>`;
             }
@@ -220,34 +220,77 @@ const DashboardComponent = {
         const canvas = document.getElementById('despesas-donut-chart');
         if (!canvas || !despesasComposicao.length || typeof Chart === 'undefined') return;
 
+        // Destruir chart anterior caso exista
+        if (this._donutChart) {
+            this._donutChart.destroy();
+            this._donutChart = null;
+        }
+
         const colors = [
             '#3b82f6', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6',
             '#ec4899', '#06b6d4', '#f97316', '#6366f1', '#14b8a6'
         ];
 
-        new Chart(canvas, {
+        // Registrar plugin datalabels se disponível
+        if (typeof ChartDataLabels !== 'undefined') {
+            Chart.register(ChartDataLabels);
+        }
+
+        this._donutChart = new Chart(canvas, {
             type: 'doughnut',
             data: {
                 labels: despesasComposicao.map(d => d.description),
                 datasets: [{
                     data: despesasComposicao.map(d => d.amount),
                     backgroundColor: despesasComposicao.map((_, i) => colors[i % colors.length]),
-                    borderWidth: 1,
+                    borderWidth: 2,
                     borderColor: '#fff'
                 }]
             },
             options: {
-                responsive: false,
+                responsive: true,
+                maintainAspectRatio: true,
+                layout: { padding: 10 },
                 plugins: {
                     legend: {
                         position: 'right',
-                        labels: { font: { size: 11 }, padding: 12 }
+                        labels: {
+                            font: { size: 12 },
+                            padding: 14,
+                            usePointStyle: true,
+                            generateLabels: function(chart) {
+                                const data = chart.data;
+                                const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                return data.labels.map((label, i) => {
+                                    const value = data.datasets[0].data[i];
+                                    const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                    return {
+                                        text: `${label} (${pct}%)`,
+                                        fillStyle: data.datasets[0].backgroundColor[i],
+                                        hidden: false,
+                                        index: i,
+                                        pointStyle: 'circle'
+                                    };
+                                });
+                            }
+                        }
                     },
                     tooltip: {
                         callbacks: {
                             label: function(ctx) {
-                                return `${ctx.label}: ${formatCurrency(ctx.raw)}`;
+                                const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                const pct = total > 0 ? ((ctx.raw / total) * 100).toFixed(1) : 0;
+                                return `${ctx.label}: ${formatCurrency(ctx.raw)} (${pct}%)`;
                             }
+                        }
+                    },
+                    datalabels: {
+                        color: '#ffffff',
+                        font: { weight: 'bold', size: 12 },
+                        formatter: function(value, ctx) {
+                            const sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                            const pct = ((value / sum) * 100).toFixed(1);
+                            return pct >= 5 ? pct + '%' : '';
                         }
                     }
                 }

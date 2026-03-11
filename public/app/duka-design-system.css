@@ -592,7 +592,15 @@ a:hover {
 .table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
     font-size: var(--text-base);
+}
+
+.table th,
+.table td {
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .table thead {
@@ -628,6 +636,13 @@ a:hover {
     color: #ffffff !important;
 }
 .row-overdue td {
+    color: #ffffff !important;
+}
+.row-overdue td span,
+.row-overdue td strong,
+.row-overdue td a,
+.row-overdue td i,
+.row-overdue td .service-icon {
     color: #ffffff !important;
 }
 

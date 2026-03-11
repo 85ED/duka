@@ -763,7 +763,15 @@ body {
 .table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
     font-size: 14px;
+}
+
+.table th,
+.table td {
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .table thead {
@@ -874,9 +882,27 @@ body {
 .row-overdue td {
     color: #ffffff !important;
 }
+.row-overdue td span,
+.row-overdue td strong,
+.row-overdue td a,
+.row-overdue td i,
+.row-overdue td .service-icon {
+    color: #ffffff !important;
+}
 .row-overdue .badge-danger {
     background-color: #ffffff;
     color: #e53935;
+}
+.row-overdue .btn-check i {
+    color: #ffffff !important;
+}
+.row-overdue .btn.btn-sm {
+    background-color: rgba(255,255,255,0.2) !important;
+    color: #ffffff !important;
+    border-color: rgba(255,255,255,0.4) !important;
+}
+.row-overdue .btn.btn-sm:hover {
+    background-color: rgba(255,255,255,0.35) !important;
 }
 
 /* ===== FORM ===== */

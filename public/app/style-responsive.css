@@ -744,6 +744,19 @@ body {
     .table tbody tr.row-overdue td {
         color: #ffffff !important;
     }
+    .table tbody tr.row-overdue td::before {
+        color: #ffffff !important;
+    }
+    .table tbody tr.row-overdue td span,
+    .table tbody tr.row-overdue td strong,
+    .table tbody tr.row-overdue td a,
+    .table tbody tr.row-overdue td i,
+    .table tbody tr.row-overdue td .service-icon {
+        color: #ffffff !important;
+    }
+    .table tbody tr.row-overdue td:first-child {
+        background: #c62828;
+    }
 
     /* Checkbox e botões de ação inline */
     .table td .btn-check {
