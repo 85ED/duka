@@ -16,6 +16,16 @@ class ContractService {
     }
 
     static async add({ contractId, serviceId, price, startDate }) {
+        // Verificar se o serviço já está ativo neste contrato
+        const [existing] = await db.execute(
+            `SELECT id FROM contract_services
+             WHERE contract_id = ? AND service_id = ? AND status = 'active'`,
+            [contractId, serviceId]
+        );
+        if (existing.length > 0) {
+            throw new Error('Este serviço já está ativo neste contrato');
+        }
+
         const [result] = await db.execute(
             `INSERT INTO contract_services (contract_id, service_id, price, start_date, status)
              VALUES (?, ?, ?, ?, 'active')`,

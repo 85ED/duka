@@ -31,7 +31,15 @@ class Dashboard {
 
             const [contracts] = await connection.execute(
                 `SELECT c.id, c.unit_id, c.property_id, c.tenant_id, c.start_date, c.end_date, c.rent_amount,
-                        t.name as tenant_name
+                        t.name as tenant_name,
+                        COALESCE(
+                            (SELECT SUM(COALESCE(cs2.price, s2.default_price))
+                             FROM contract_services cs2
+                             JOIN services s2 ON cs2.service_id = s2.id
+                             WHERE cs2.contract_id = c.id
+                               AND cs2.status = 'active'
+                               AND s2.status = 'active'), 0
+                        ) as services_total
                  FROM contracts c
                  JOIN tenants t ON c.tenant_id = t.id
                  WHERE c.account_id = ?
@@ -49,13 +57,13 @@ class Dashboard {
                 tenant_name: c.tenant_name,
                 startDate: c.start_date,
                 endDate: c.end_date,
-                monthlyValue: c.rent_amount
+                monthlyValue: parseFloat(c.rent_amount) + parseFloat(c.services_total || 0)
             }));
 
             const sameDayReplacementSet = rules.buildSameDayReplacementSet(contractForRules);
 
-            const faturamentoMesCalc = rules.calcFaturamentoMes(contractForRules, selectedYear, selectedMonth);
-            const faturamentoMes = faturamentoMesCalc.roundedTotal;
+            // Faturamento será calculado a partir das cobranças reais (após query de charges)
+            let faturamentoMes = 0;
 
             const [receivedRows] = await connection.execute(
                 `SELECT COALESCE(SUM(amount_paid), 0) as total
@@ -175,14 +183,20 @@ class Dashboard {
             const referenceDate = new Date();
             referenceDate.setHours(0, 0, 0, 0);
             const risco = contractsActiveThisMonth.map(c => {
-                const contractFaturamento = rules.calcContractBillingForMonth(
-                    c,
-                    selectedYear,
-                    selectedMonth,
-                    sameDayReplacementSet
-                ).roundedValue;
+                // Valor do contrato baseado nas cobranças reais (inclui aluguel + serviços)
+                let contractChargesCents = 0n;
+                chargesMonth.forEach(ch => {
+                    if (ch.contract_id === c.id) {
+                        contractChargesCents += rules.parseToCents(ch.total_amount || 0);
+                    }
+                });
+                // Fallback para valor mensal do contrato se não houver cobrança
+                const contractValue = contractChargesCents > 0n
+                    ? rules.centsToNumber(contractChargesCents)
+                    : rules.centsToNumber(rules.parseToCents(c.monthlyValue || 0));
+
                 const impactoPct = faturamentoMes > 0
-                    ? rules.roundTo((contractFaturamento / faturamentoMes) * 100, 2)
+                    ? rules.roundTo((contractValue / faturamentoMes) * 100, 2)
                     : 0;
 
                 const unpaidCents = unpaidByContract.get(c.id) || 0n;
@@ -212,7 +226,7 @@ class Dashboard {
 
                 return {
                     tenant_name: c.tenant_name,
-                    contract_value: rules.centsToNumber(rules.parseToCents(c.monthlyValue || 0)),
+                    contract_value: contractValue,
                     overdue_value: rules.centsToNumber(unpaidCents),
                     valor_atualizado: valorAtualizado,
                     status: isPaid ? 'paid' : 'open',
@@ -220,6 +234,19 @@ class Dashboard {
                     impact_pct: impactoPct
                 };
             }).sort((a, b) => b.impact_pct - a.impact_pct);
+
+            // Cobranças por mês do ano (para gráfico de evolução)
+            const [chargesYearRows] = await connection.execute(
+                `SELECT DATE_FORMAT(reference_month, '%m') as m, COALESCE(SUM(total_amount), 0) as total
+                 FROM charges
+                 WHERE account_id = ?
+                   AND reference_month >= ? AND reference_month <= ?
+                   AND status != 'void'
+                 GROUP BY DATE_FORMAT(reference_month, '%m')`,
+                [accountId, yearStart, yearEnd]
+            );
+            const chargesByMonth = new Map();
+            chargesYearRows.forEach(r => chargesByMonth.set(parseInt(r.m, 10), rules.parseToCents(r.total || 0)));
 
             const [expensesYearRows] = await connection.execute(
                 `SELECT DATE_FORMAT(expense_date, '%m') as m, COALESCE(SUM(amount), 0) as total
@@ -236,8 +263,7 @@ class Dashboard {
             const despesasMensal = [];
 
             for (let m = 1; m <= 12; m += 1) {
-                // TODO: considerar snapshot historico de contratos por competencia
-                const faturamento = rules.calcFaturamentoMes(contractForRules, selectedYear, m).roundedTotal;
+                const faturamento = rules.centsToNumber(chargesByMonth.get(m) || 0n);
                 const despesas = rules.centsToNumber(expensesByMonth.get(m) || 0n);
                 const liquida = rules.roundTo(faturamento - despesas, 2);
                 receitaLiquidaMensal.push({ month: m, value: liquida });
