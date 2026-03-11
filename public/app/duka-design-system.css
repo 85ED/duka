@@ -624,16 +624,11 @@ a:hover {
 
 /* Table Row States */
 .row-overdue {
-    animation: pulse-red 2s ease-in-out infinite;
+    background-color: #e53935 !important;
+    color: #ffffff !important;
 }
-
-@keyframes pulse-red {
-    0%, 100% {
-        background-color: transparent;
-    }
-    50% {
-        background-color: var(--danger-light);
-    }
+.row-overdue td {
+    color: #ffffff !important;
 }
 
 /* Table Actions Column */

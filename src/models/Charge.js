@@ -161,7 +161,7 @@ class Charge {
                        p.address
                    ) as property_address,
                    (SELECT COALESCE(SUM(pm.amount_paid), 0) FROM payments pm WHERE pm.charge_id = c.id AND pm.status = 'confirmed') as total_paid,
-                   -- Cálculo de juros
+                   -- Cálculo de atraso (dias, multa, juros)
                    CASE 
                        WHEN c.status != 'paid' AND c.due_date < CURDATE() 
                        THEN DATEDIFF(CURDATE(), c.due_date)
@@ -169,14 +169,21 @@ class Charge {
                    END as dias_atraso,
                    CASE 
                        WHEN c.status != 'paid' AND c.due_date < CURDATE() 
+                       THEN ROUND(c.total_amount * (COALESCE(cnt.late_fee_percent, 2.00) / 100), 2)
+                       ELSE 0
+                   END as multa,
+                   CASE 
+                       WHEN c.status != 'paid' AND c.due_date < CURDATE() 
                        THEN ROUND(c.total_amount * (COALESCE(cnt.late_fee_daily, 0.0333) / 100) * DATEDIFF(CURDATE(), c.due_date), 2)
                        ELSE 0
                    END as juros,
                    CASE 
                        WHEN c.status != 'paid' AND c.due_date < CURDATE() 
-                       THEN ROUND(c.total_amount + (c.total_amount * (COALESCE(cnt.late_fee_daily, 0.0333) / 100) * DATEDIFF(CURDATE(), c.due_date)), 2)
+                       THEN ROUND(c.total_amount + (c.total_amount * (COALESCE(cnt.late_fee_percent, 2.00) / 100)) + (c.total_amount * (COALESCE(cnt.late_fee_daily, 0.0333) / 100) * DATEDIFF(CURDATE(), c.due_date)), 2)
                        ELSE c.total_amount
                    END as valor_com_juros,
+                   COALESCE(cnt.late_fee_daily, 0.0333) as late_fee_daily,
+                   COALESCE(cnt.late_fee_percent, 2.00) as late_fee_percent,
                    -- Serviços adicionais (subconsulta com ícone)
                    (SELECT JSON_ARRAYAGG(JSON_OBJECT('description', ci.description, 'amount', ci.amount, 'type', ci.type, 'icon', COALESCE(s.icon, 'fa-solid fa-circle-check')))
                     FROM charge_items ci

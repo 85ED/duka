@@ -737,7 +737,12 @@ body {
 
     /* Estilizar linhas de risco (overdue) */
     .table tbody tr.row-overdue {
-        border-left: 4px solid var(--danger-color);
+        border-left: 4px solid #e53935;
+        background-color: #e53935 !important;
+        color: #ffffff !important;
+    }
+    .table tbody tr.row-overdue td {
+        color: #ffffff !important;
     }
 
     /* Checkbox e botões de ação inline */

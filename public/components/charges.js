@@ -61,8 +61,9 @@ const ChargesComponent = {
                                 <th>Serviços</th>
                                 <th>Vencimento</th>
                                 <th>Atraso</th>
+                                <th>Multa</th>
                                 <th>Juros</th>
-                                <th>Total c/ Juros</th>
+                                <th>Total</th>
                                 <th style="text-align:center;">Pago?</th>
                                 <th style="text-align:center;">Ações</th>
                             </tr>
@@ -71,6 +72,7 @@ const ChargesComponent = {
 
                 charges.forEach(c => {
                     const diasAtraso   = parseInt(c.dias_atraso) || 0;
+                    const multa        = parseFloat(c.multa) || 0;
                     const juros        = parseFloat(c.juros) || 0;
                     const valorComJuros = parseFloat(c.valor_com_juros) || parseFloat(c.total_amount);
                     const isPaid       = c.status === 'paid';
@@ -90,10 +92,13 @@ const ChargesComponent = {
                     const atrasoHtml = (diasAtraso > 0 && !isPaid)
                         ? `<span class="badge badge-danger">${diasAtraso} dias</span>` : '—';
 
+                    const multaHtml = (multa > 0 && !isPaid)
+                        ? `<span style="color:var(--danger);">+${formatCurrency(multa)}</span>` : '—';
+
                     const jurosHtml = (juros > 0 && !isPaid)
                         ? `<span style="color:var(--danger);">+${formatCurrency(juros)}</span>` : '—';
 
-                    const totalHtml = (juros > 0 && !isPaid)
+                    const totalHtml = ((multa > 0 || juros > 0) && !isPaid)
                         ? `<strong style="color:var(--danger);">${formatCurrency(valorComJuros)}</strong>`
                         : formatCurrency(c.total_amount);
 
@@ -112,8 +117,9 @@ const ChargesComponent = {
                         <td data-label="Serviços">${servicosHtml}</td>
                         <td data-label="Vencimento">${formatDate(c.due_date)}</td>
                         <td data-label="Atraso">${atrasoHtml}</td>
+                        <td data-label="Multa">${multaHtml}</td>
                         <td data-label="Juros">${jurosHtml}</td>
-                        <td data-label="Total c/ Juros">${totalHtml}</td>
+                        <td data-label="Total">${totalHtml}</td>
                         <td data-label="Pago?" style="text-align:center;">${pagoHtml}</td>
                         <td data-label="Ações" class="td-actions" style="text-align:center;">${acoesHtml}</td>
                     </tr>`;
@@ -179,6 +185,7 @@ const ChargesComponent = {
             if (!charge) { showToast('Cobrança não encontrada', 'error'); return; }
 
             const diasAtraso    = parseInt(charge.dias_atraso) || 0;
+            const multa         = parseFloat(charge.multa) || 0;
             const juros         = parseFloat(charge.juros) || 0;
             const valorOriginal = parseFloat(charge.total_amount);
             const valorComJuros = parseFloat(charge.valor_com_juros) || valorOriginal;
@@ -187,19 +194,21 @@ const ChargesComponent = {
                 chargeId,
                 valorOriginal,
                 diasAtraso,
+                multa,
                 juros,
                 valorComJuros,
                 tenantName: charge.tenant_name,
                 propertyAddress: charge.property_address,
                 dueDate: charge.due_date,
-                taxaDiaria: charge.late_fee_daily
+                taxaDiaria: charge.late_fee_daily,
+                multaPercent: charge.late_fee_percent
             });
         } catch (error) {
             showToast('Erro: ' + error.message, 'error');
         }
     },
 
-    _showPaymentModal({ chargeId, valorOriginal, diasAtraso, juros, valorComJuros, tenantName, propertyAddress, dueDate, taxaDiaria }) {
+    _showPaymentModal({ chargeId, valorOriginal, diasAtraso, multa, juros, valorComJuros, tenantName, propertyAddress, dueDate, taxaDiaria, multaPercent }) {
         const hoje = new Date().toISOString().split('T')[0];
 
         const form = `
@@ -214,10 +223,12 @@ const ChargesComponent = {
             <form id="payment-form"
                   data-charge-id="${chargeId}"
                   data-valor-original="${valorOriginal}"
+                  data-multa="${multa}"
                   data-juros="${juros}"
                   data-valor-com-juros="${valorComJuros}"
                   data-due-date="${dueDate}"
-                  data-taxa="${taxaDiaria || 0.0333}">
+                  data-taxa="${taxaDiaria || 0.0333}"
+                  data-multa-percent="${multaPercent || 2.00}">
                 <div class="form-group">
                     <label><i class="fa-solid fa-calendar"></i> Data do Pagamento *</label>
                     <input type="date" id="pmt-date" value="${hoje}" required>
@@ -228,6 +239,13 @@ const ChargesComponent = {
                     <div class="payment-row">
                         <span>Valor original:</span>
                         <strong>${formatCurrency(valorOriginal)}</strong>
+                    </div>
+                    <div class="payment-row">
+                        <span style="color:var(--danger-color);">
+                            <i class="fa-solid fa-plus" style="font-size:10px;"></i>
+                            Multa (${multaPercent || 2}%):
+                        </span>
+                        <strong style="color:var(--danger-color);" id="pmt-multa">+${formatCurrency(multa)}</strong>
                     </div>
                     <div class="payment-row" style="border-bottom:1px solid var(--border-color); padding-bottom:12px; margin-bottom:12px;">
                         <span style="color:var(--danger-color);">
@@ -313,7 +331,7 @@ const ChargesComponent = {
         }
     },
 
-    // ─── Recálculo de juros dinâmico ─────────────────────────────
+    // ─── Recálculo de juros e multa dinâmico ────────────────────
 
     _recalcJuros() {
         const form = document.getElementById('payment-form');
@@ -322,26 +340,30 @@ const ChargesComponent = {
         const valorOriginal = parseFloat(form.dataset.valorOriginal);
         const dueDate       = form.dataset.dueDate;
         const taxa          = parseFloat(form.dataset.taxa) || 0.0333;
+        const multaPercent  = parseFloat(form.dataset.multaPercent) || 2.00;
         const dataPago      = new Date(document.getElementById('pmt-date').value + 'T00:00:00');
         const dataParcela   = new Date(dueDate);
 
-        let novosDias = 0, novosJuros = 0;
+        let novosDias = 0, novosJuros = 0, novaMulta = 0;
         if (dataPago > dataParcela) {
             novosDias  = Math.floor((dataPago - dataParcela) / (1000 * 60 * 60 * 24));
+            novaMulta  = valorOriginal * (multaPercent / 100);
             novosJuros = valorOriginal * (taxa / 100) * novosDias;
         }
-        const novoTotal = valorOriginal + novosJuros;
+        const novoTotal = valorOriginal + novaMulta + novosJuros;
 
         const elDias  = document.getElementById('pmt-dias');
+        const elMulta = document.getElementById('pmt-multa');
         const elJuros = document.getElementById('pmt-juros');
         const elTotal = document.getElementById('pmt-total');
         if (elDias)  elDias.textContent  = novosDias;
+        if (elMulta) elMulta.textContent = `+${formatCurrency(novaMulta)}`;
         if (elJuros) elJuros.textContent = `+${formatCurrency(novosJuros)}`;
         if (elTotal) elTotal.textContent = formatCurrency(novoTotal);
 
         const amountInput = document.getElementById('pmt-amount');
-        const oldJuros = parseFloat(form.dataset.valorComJuros);
-        if (amountInput && (amountInput.value === oldJuros.toFixed(2) || amountInput.value === (valorOriginal + parseFloat(form.dataset.juros)).toFixed(2))) {
+        const oldTotal = parseFloat(form.dataset.valorComJuros);
+        if (amountInput && (amountInput.value === oldTotal.toFixed(2) || amountInput.value === (valorOriginal + parseFloat(form.dataset.multa) + parseFloat(form.dataset.juros)).toFixed(2))) {
             amountInput.value = novoTotal.toFixed(2);
         }
     },
@@ -419,7 +441,7 @@ const ChargesComponent = {
                         closeModal();
 
                         const diff = valorPago - valorOrig;
-                        showToast(`Pagamento registrado!\nOriginal: ${formatCurrency(valorOrig)}\nJuros: ${formatCurrency(diff)}\nTotal pago: ${formatCurrency(valorPago)}`, 'success');
+                        showToast(`Pagamento registrado!\nOriginal: ${formatCurrency(valorOrig)}\nMulta + Juros: ${formatCurrency(diff)}\nTotal pago: ${formatCurrency(valorPago)}`, 'success');
                         await self.renderList();
                         break;
                     }

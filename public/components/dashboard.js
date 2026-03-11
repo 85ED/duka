@@ -158,14 +158,37 @@ const DashboardComponent = {
                     </div>
                 </div>`;
 
+            // ── Gráfico pizza despesas do mês ────────────────────
+            const despesasComposicao = stats.despesas_composicao || [];
+            if (despesasComposicao.length > 0) {
+                html += `
+                    <div class="card">
+                        <div class="card-header"><h2>Composição das despesas do mês</h2></div>
+                        <div class="card-body" style="display:flex; justify-content:center; align-items:center; padding:20px;">
+                            <canvas id="despesas-donut-chart" width="280" height="280" style="max-width:280px; max-height:280px;"></canvas>
+                        </div>
+                    </div>`;
+            }
+
             // ── Tabela de risco ──────────────────────────────────
             let riscoRows = '';
             (stats.risco_inquilinos || []).forEach(r => {
-                riscoRows += `<tr>
+                const isPaid = r.status === 'paid';
+                const statusHtml = isPaid
+                    ? '<span style="color:#16a34a; font-weight:600;">Pago</span>'
+                    : '<span style="color:#dc2626; font-weight:600;">Em aberto</span>';
+                const rowStyle = !isPaid && r.days_overdue > 0 ? ' style="background:#ffe5e5;"' : '';
+                const valorAtualizado = isPaid ? formatCurrency(r.contract_value) : formatCurrency(r.valor_atualizado || r.overdue_value);
+                const diasAtrasoHtml = r.days_overdue > 0 && !isPaid
+                    ? `<span style="color:#dc2626; font-weight:600;">${r.days_overdue}</span>`
+                    : '0';
+
+                riscoRows += `<tr${rowStyle}>
                     <td data-label="Inquilino">${r.tenant_name}</td>
                     <td data-label="Valor contrato">${formatCurrency(r.contract_value)}</td>
-                    <td data-label="Valor vencido">${formatCurrency(r.overdue_value)}</td>
-                    <td data-label="Dias atraso">${r.days_overdue}</td>
+                    <td data-label="Status">${statusHtml}</td>
+                    <td data-label="Valor atualizado">${valorAtualizado}</td>
+                    <td data-label="Dias atraso">${diasAtrasoHtml}</td>
                     <td data-label="Impacto">${r.impact_pct.toFixed(2)}%</td>
                 </tr>`;
             });
@@ -175,9 +198,9 @@ const DashboardComponent = {
                     <div class="card-header"><h2>Risco financeiro por inquilino</h2></div>
                     <div class="card-body">
                         <table class="table">
-                            <thead><tr><th>Inquilino</th><th>Valor do contrato</th><th>Valor vencido</th><th>Dias em atraso</th><th>Impacto</th></tr></thead>
+                            <thead><tr><th>Inquilino</th><th>Valor do contrato</th><th>Status</th><th>Valor atualizado</th><th>Dias em atraso</th><th>Impacto</th></tr></thead>
                             <tbody>
-                                ${riscoRows || '<tr><td colspan="5" style="text-align:center; color: var(--text-secondary);">Sem dados no periodo</td></tr>'}
+                                ${riscoRows || '<tr><td colspan="6" style="text-align:center; color: var(--text-secondary);">Sem dados no periodo</td></tr>'}
                             </tbody>
                         </table>
                     </div>
@@ -185,9 +208,51 @@ const DashboardComponent = {
 
             this.contentContainer.innerHTML = html;
             this._bindTooltips();
+            this._renderDespesasDonut(despesasComposicao);
         } catch (error) {
             this.contentContainer.innerHTML = `<div class="error-message show">${error.message}</div>`;
         }
+    },
+
+    // ─── Gráfico de pizza (donut) despesas do mês ──────────────
+
+    _renderDespesasDonut(despesasComposicao) {
+        const canvas = document.getElementById('despesas-donut-chart');
+        if (!canvas || !despesasComposicao.length || typeof Chart === 'undefined') return;
+
+        const colors = [
+            '#3b82f6', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6',
+            '#ec4899', '#06b6d4', '#f97316', '#6366f1', '#14b8a6'
+        ];
+
+        new Chart(canvas, {
+            type: 'doughnut',
+            data: {
+                labels: despesasComposicao.map(d => d.description),
+                datasets: [{
+                    data: despesasComposicao.map(d => d.amount),
+                    backgroundColor: despesasComposicao.map((_, i) => colors[i % colors.length]),
+                    borderWidth: 1,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { font: { size: 11 }, padding: 12 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                return `${ctx.label}: ${formatCurrency(ctx.raw)}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
     },
 
     // ─── Tooltips nas barras do gráfico ──────────────────────────

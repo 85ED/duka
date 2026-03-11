@@ -9,7 +9,7 @@ class Payment {
         try {
             // 1. Buscar cobrança com juros
             const [charges] = await connection.execute(
-                `SELECT c.id, c.total_amount, c.status, c.due_date, cnt.late_fee_daily
+                `SELECT c.id, c.total_amount, c.status, c.due_date, cnt.late_fee_daily, cnt.late_fee_percent
                  FROM charges c
                  JOIN contracts cnt ON c.contract_id = cnt.id
                  WHERE c.id = ? AND c.account_id = ? FOR UPDATE`,
@@ -27,8 +27,9 @@ class Payment {
             let valorFinal = amountPaid || parseFloat(charge.total_amount);
             let diasAtraso = 0;
             let juros = 0;
+            let multa = 0;
 
-            // Calcular juros baseado na data de pagamento informada
+            // Calcular juros e multa baseado na data de pagamento informada
             if (dataPagamento) {
                 const vencimento = new Date(charge.due_date + 'T00:00:00');
                 const pagamento = new Date(dataPagamento + 'T00:00:00');
@@ -36,11 +37,14 @@ class Payment {
                 if (pagamento > vencimento) {
                     diasAtraso = Math.floor((pagamento - vencimento) / (1000 * 60 * 60 * 24));
                     const taxaDiaria = parseFloat(charge.late_fee_daily || 0.0333);
+                    const multaPercent = parseFloat(charge.late_fee_percent || 2.00);
+                    
+                    multa = parseFloat(charge.total_amount) * (multaPercent / 100);
                     juros = parseFloat(charge.total_amount) * (taxaDiaria / 100) * diasAtraso;
                     
-                    // Se amountPaid não foi fornecido, usa o valor com juros
+                    // Se amountPaid não foi fornecido, usa o valor com multa + juros
                     if (!amountPaid) {
-                        valorFinal = parseFloat(charge.total_amount) + juros;
+                        valorFinal = parseFloat(charge.total_amount) + multa + juros;
                     }
                 }
             }
@@ -62,6 +66,7 @@ class Payment {
                 message: 'Pagamento registrado',
                 valorOriginal: parseFloat(charge.total_amount),
                 diasAtraso,
+                multa: Math.round(multa * 100) / 100,
                 juros: Math.round(juros * 100) / 100,
                 valorPago: Math.round(valorFinal * 100) / 100,
                 dataPagamento,

@@ -78,6 +78,22 @@ class Dashboard {
             );
             const despesasMes = rules.centsToNumber(rules.parseToCents(expenseRows[0].total || 0));
 
+            // Composição das despesas do mês (para gráfico de pizza)
+            const [expenseBreakdownRows] = await connection.execute(
+                `SELECT description, COALESCE(SUM(amount), 0) as total
+                 FROM expenses
+                 WHERE account_id = ?
+                   AND expense_date >= ?
+                   AND expense_date <= ?
+                 GROUP BY description
+                 ORDER BY total DESC`,
+                [accountId, monthStartStr, monthEndStr]
+            );
+            const despesasComposicao = expenseBreakdownRows.map(r => ({
+                description: r.description,
+                amount: rules.centsToNumber(rules.parseToCents(r.total || 0))
+            }));
+
             const [chargesMonth] = await connection.execute(
                 `SELECT c.id, c.contract_id, c.total_amount, c.due_date,
                         COALESCE(SUM(p.amount_paid), 0) as paid_by_end
@@ -156,7 +172,8 @@ class Dashboard {
 
             const unidadesAdimplentesPct = rules.calcUnidadesAdimplentesMes(contratosSemAtraso, contratosAtivosCount);
 
-            const referenceDate = monthEnd;
+            const referenceDate = new Date();
+            referenceDate.setHours(0, 0, 0, 0);
             const risco = contractsActiveThisMonth.map(c => {
                 const contractFaturamento = rules.calcContractBillingForMonth(
                     c,
@@ -169,6 +186,7 @@ class Dashboard {
                     : 0;
 
                 const unpaidCents = unpaidByContract.get(c.id) || 0n;
+                const isPaid = unpaidCents === 0n;
                 let maxDiasAtraso = 0;
                 chargesMonth.forEach(ch => {
                     if (ch.contract_id !== c.id) return;
@@ -183,10 +201,21 @@ class Dashboard {
                     }
                 });
 
+                // Calcular valor atualizado com multa + juros
+                const overdueValue = rules.centsToNumber(unpaidCents);
+                let valorAtualizado = overdueValue;
+                if (maxDiasAtraso > 0 && overdueValue > 0) {
+                    const multa = overdueValue * 0.02;
+                    const juros = overdueValue * (0.0333 / 100) * maxDiasAtraso;
+                    valorAtualizado = rules.roundTo(overdueValue + multa + juros, 2);
+                }
+
                 return {
                     tenant_name: c.tenant_name,
                     contract_value: rules.centsToNumber(rules.parseToCents(c.monthlyValue || 0)),
                     overdue_value: rules.centsToNumber(unpaidCents),
+                    valor_atualizado: valorAtualizado,
+                    status: isPaid ? 'paid' : 'open',
                     days_overdue: maxDiasAtraso,
                     impact_pct: impactoPct
                 };
@@ -306,6 +335,7 @@ class Dashboard {
                 },
                 receita_liquida_mensal: receitaLiquidaMensal,
                 despesas_mensal: despesasMensal,
+                despesas_composicao: despesasComposicao,
                 risco_inquilinos: risco
             };
         } finally {

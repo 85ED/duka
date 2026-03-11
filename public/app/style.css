@@ -866,18 +866,17 @@ body {
     color: var(--text-secondary);
 }
 
-/* Linha atrasada - pisca */
+/* Linha atrasada - fundo vermelho fixo */
 .row-overdue {
-    animation: pulse-red 2s ease-in-out infinite;
+    background-color: #e53935 !important;
+    color: #ffffff !important;
 }
-
-@keyframes pulse-red {
-    0%, 100% {
-        background-color: transparent;
-    }
-    50% {
-        background-color: #fee2e2;
-    }
+.row-overdue td {
+    color: #ffffff !important;
+}
+.row-overdue .badge-danger {
+    background-color: #ffffff;
+    color: #e53935;
 }
 
 /* ===== FORM ===== */
